@@ -532,6 +532,7 @@ void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString d
 			else
 				softwareGrabberInstance = candidate;
 		}
+#endif
 #if defined(ENABLE_FRAMEBUFFER)
 		if (softwareGrabberInstance == nullptr)
 		{
