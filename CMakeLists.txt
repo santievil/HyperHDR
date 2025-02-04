@@ -448,7 +448,7 @@ option(ENABLE_DX "Enable Windows DirectX 11 system grabber" ${DEFAULT_DX})
 colorMe("ENABLE_DX = " ${ENABLE_DX})
 
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC})
-colorMe("ENABLE_AMLOGIC = " ${ENABLE_AMLOGIC})
+colorMe("ENABLE_AMLOGIC = " ${ENABLE_AMLOGIC}) 
 
 if(ENABLE_AMLOGIC)
 	set(ENABLE_FRAMEBUFFER ON)
