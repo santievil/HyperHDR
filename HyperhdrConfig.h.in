@@ -15,6 +15,9 @@
 // directx grabber
 #cmakedefine ENABLE_DX
 
+// Define to enable the AMLogic grabber
+#cmakedefine ENABLE_AMLOGIC
+
 // framebuffer linux system grabber
 #cmakedefine ENABLE_FRAMEBUFFER
 
