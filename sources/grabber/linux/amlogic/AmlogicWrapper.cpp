@@ -11,7 +11,9 @@ AmlogicWrapper::AmlogicWrapper(const QJsonDocument& grabberConfig)
 	: AmlogicWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
 					 GrabberWrapper::DEFAULT_PIXELDECIMATION)
 {
-	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	//this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	this->handleSettingsUpdate(settings::SYSTEMGRABBER, grabberConfig);
+	
 }
 
 void AmlogicWrapper::action()
