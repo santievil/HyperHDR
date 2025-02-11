@@ -94,3 +94,52 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 
 	return "NO_CHANGE";
 }
+
+enum class FlipMode
+{
+	NO_CHANGE,
+	HORIZONTAL,
+	VERTICAL,
+	BOTH
+};
+
+inline FlipMode parseFlipMode(const QString& flipMode)
+{
+	// convert to lower case
+	QString mode = flipMode.toLower();
+
+	if (mode.compare("horizontal") == 0)
+	{
+		return FlipMode::HORIZONTAL;
+	}
+	else if (mode.compare("vertical")  == 0)
+	{
+		return FlipMode::VERTICAL;
+	}
+	else if (mode.compare("both")  == 0)
+	{
+		return FlipMode::BOTH;
+	}
+
+	// return the default NO_CHANGE
+	return FlipMode::NO_CHANGE;
+}
+
+inline QString flipModeToString(const FlipMode& flipMode)
+{
+	if ( flipMode == FlipMode::HORIZONTAL)
+	{
+		return "horizontal";
+	}
+	else if (flipMode == FlipMode::VERTICAL)
+	{
+		return "vertical";
+	}
+	else if (flipMode == FlipMode::BOTH)
+	{
+		return "both";
+	}
+
+	// return the default NO_CHANGE
+	return "NO_CHANGE";
+}

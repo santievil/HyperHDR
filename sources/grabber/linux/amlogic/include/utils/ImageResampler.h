@@ -1,9 +1,9 @@
 #pragma once
 
-#include <utils/VideoMode.h>
+#include <grabber/linux/amlogic/include/utils/VideoMode.h>
 #include <utils/PixelFormat.h>
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
+#include <grabber/linux/amlogic/include/utils/Image.h>
+#include <grabber/linux/amlogic/include/utils/ColorRgb.h>
 
 class ImageResampler
 {
