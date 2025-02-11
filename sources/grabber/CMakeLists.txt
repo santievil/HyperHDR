@@ -6,9 +6,9 @@ if (ENABLE_X11)
 	add_subdirectory(linux/X11)
 endif (ENABLE_X11)
 
-if (ENABLE_AMLOGIC)
-	add_subdirectory(linux/amlogic)
-endif(ENABLE_AMLOGIC)
+#if (ENABLE_AMLOGIC)
+#	add_subdirectory(linux/amlogic)
+#endif(ENABLE_AMLOGIC)
 
 if (ENABLE_FRAMEBUFFER)
 	add_subdirectory(linux/framebuffer)
