@@ -12,7 +12,7 @@ AmlogicWrapper::AmlogicWrapper(const QJsonDocument& grabberConfig)
 					 GrabberWrapper::DEFAULT_PIXELDECIMATION)
 {
 	//this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
-	this->handleSettingsUpdate(settings::SYSTEMGRABBER, grabberConfig);
+	this->handleSettingsUpdate(settings::type::SYSTEMGRABBER, grabberConfig);
 	
 }
 
