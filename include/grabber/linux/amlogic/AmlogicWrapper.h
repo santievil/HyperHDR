@@ -1,6 +1,6 @@
 #pragma once
 
-#include <grabber/linux/amlogic/include/hyperion/GrabberWrapper.h>
+#include <hyperion/GrabberWrapper.h>
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 
 ///
@@ -12,15 +12,23 @@ class AmlogicWrapper : public GrabberWrapper
 {
 	Q_OBJECT
 public:
+
+	static constexpr const char* GRABBERTYPE = "Amlogic";
+
 	///
 	/// Constructs the Amlogic frame grabber
 	///
-	/// @param[in] grabWidth  The width of the grabbed image [pixels]
-	/// @param[in] grabHeight  The height of the grabbed images [pixels]
-	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
+	/// @param[in] updateRate_Hz     The image grab rate [Hz]
+	/// @param[in] pixelDecimation   Decimation factor for image [pixels]///
 	///
-	AmlogicWrapper(int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
-					int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ);
+	AmlogicWrapper(int updateRate_Hz = GrabberWrapper::DEFAULT_RATE_HZ,
+		int pixelDecimation = GrabberWrapper::DEFAULT_PIXELDECIMATION);
+
+	///
+	/// Constructs the Amlogic frame grabber from configuration settings
+	///
+	AmlogicWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+
 
 public slots:
 	///
