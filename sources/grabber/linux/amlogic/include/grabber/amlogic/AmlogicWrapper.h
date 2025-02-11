@@ -1,6 +1,7 @@
 #pragma once
 
-#include <grabber/linux/amlogic/include/hyperion/GrabberWrapper.h>
+//#include <grabber/linux/amlogic/include/hyperion/GrabberWrapper.h>
+#include <hyperion/GrabberWrapper.h>
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 
 ///

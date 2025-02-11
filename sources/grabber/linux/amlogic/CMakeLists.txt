@@ -15,6 +15,8 @@ target_include_directories(amlogic-grabber PRIVATE
     ${CMAKE_SOURCE_DIR}/sources/include  # <- Carpeta donde debería estar GrabberWrapper.h
     ${CMAKE_SOURCE_DIR}/sources  # <- Carpeta raíz de los headers
 	${CMAKE_SOURCE_DIR}/include
+	${CMAKE_SOURCE_DIR}/sources/grabber/linux/amlogic/include/hyperion
+
 )
 
 find_package(Qt5 REQUIRED COMPONENTS Core Network Gui)
