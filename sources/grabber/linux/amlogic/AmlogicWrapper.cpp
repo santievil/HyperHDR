@@ -20,3 +20,9 @@ void AmlogicWrapper::action()
 {
 	transferFrame(_grabber);
 }
+
+bool AmlogicWrapper::isActivated(bool forced)
+{
+	//return _grabber.isActivated();
+	return true;
+}

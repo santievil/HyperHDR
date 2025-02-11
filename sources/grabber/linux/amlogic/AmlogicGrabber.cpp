@@ -333,3 +333,10 @@ bool AmlogicGrabber::setFramerate(int fps)
 	return (Grabber::setFramerate(fps) &&
 			 _fbGrabber.setFramerate(fps));
 }
+
+bool AmlogicGrabber::isActive()
+{
+	//return !_deviceProperties.isEmpty();
+	return true;
+
+}

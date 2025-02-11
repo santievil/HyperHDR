@@ -50,6 +50,9 @@
 // NetOrigin checks
 #include <utils/NetOrigin.h>
 
+// Amlogic
+#include <grabber/linux/amlogic/AmlogicWrapper.h>
+
 #include <performance-counters/PerformanceCounters.h>
 
 #include "HyperHdrDaemon.h"

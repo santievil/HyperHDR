@@ -6,6 +6,8 @@
 #include <hyperion/Grabber.h>
 #include <grabber/framebuffer/FramebufferFrameGrabber.h>
 
+#include <hyperion/Grabber.h>
+
 ///
 ///
 class AmlogicGrabber : public Grabber
@@ -17,6 +19,8 @@ public:
 	///
 	AmlogicGrabber();
 	~AmlogicGrabber() override;
+
+	bool isActive();
 
 	///
 	/// @brief Setup a new capture screen, will free the previous one
