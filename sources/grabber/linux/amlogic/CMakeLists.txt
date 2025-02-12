@@ -29,12 +29,12 @@ add_library(amlogic-grabber OBJECT ${AMLOGIC_SOURCES} )
    # ${CMAKE_SOURCE_DIR}/sources/grabber/linux/amlogic/include/hyperion
    #${CMAKE_SOURCE_DIR}/include
 #)
-set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/Qt6")
+#set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/Qt6")
 target_include_directories(amlogic-grabber PRIVATE
 	${CMAKE_SOURCE_DIR}/include/utils-amlogic
 )
 
-find_package(Qt6 REQUIRED COMPONENTS Core Network Gui)
+find_package(Qt5 REQUIRED COMPONENTS Core Network Gui)
 
 target_link_libraries(amlogic-grabber
 	# hyperion
