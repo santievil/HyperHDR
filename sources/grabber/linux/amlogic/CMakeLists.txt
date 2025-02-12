@@ -34,7 +34,7 @@ target_include_directories(amlogic-grabber PRIVATE
 	${CMAKE_SOURCE_DIR}/include/utils-amlogic
 )
 
-find_package(Qt5 REQUIRED COMPONENTS Core Network Gui)
+find_package(Qt6 REQUIRED COMPONENTS Core Network Gui)
 
 target_link_libraries(amlogic-grabber
 	# hyperion
