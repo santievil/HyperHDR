@@ -1,10 +1,11 @@
 #pragma once
 
 // Utils includes
-#include <utils/ColorBgr.h>
-#include <utils/ColorRgba.h>
+#include <utils-amlogic/ColorBgr.h>
+#include <utils-amlogic/ColorRgba.h>
 #include <hyperion/Grabber.h>
-#include <grabber/framebuffer/FramebufferFrameGrabber.h>
+//#include <grabber/framebuffer/FramebufferFrameGrabber.h>
+#include <grabber/linux/framebuffer/amlogic/FramebufferFrameGrabber.h>
 
 ///
 ///
