@@ -68,6 +68,8 @@ public:
 	///
 	bool setFramerate(int fps) override;
 
+	bool isActive();
+
 	///
 	/// @brief  Apply new pixelDecimation
 	///

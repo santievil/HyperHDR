@@ -29,6 +29,8 @@ public:
 	///
 	AmlogicWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
+	bool isActivated(bool forced);
+
 
 public slots:
 	///
