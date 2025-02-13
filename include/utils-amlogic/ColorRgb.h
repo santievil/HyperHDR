@@ -6,7 +6,8 @@
 
 #include <QString>
 #include <QTextStream>
-#include <QRgb>
+//#include <QRgb>
+#include <QtGui/QRgb>
 
 
 
