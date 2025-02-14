@@ -23,8 +23,14 @@
 
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 
+const int  DEFAULT_FB_DEVICE_IDX = 0;
+const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
+const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
+const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
+const int  AMVIDEOCAP_DEFAULT_RATE_HZ = 25;
+
 AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurationPath)
-	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
+	: Grabber(configurationPath, "AMLOGIC_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _semaphore(1)
 	, _handle(-1)
@@ -105,13 +111,13 @@ bool AmlogicGrabber::init()
 
 
 		Info(_log, "*************************************************************************************************");
-		Info(_log, "Starting FrameBuffer grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
+		Info(_log, "Starting Amlogic grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");
 
 		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
 		if (_handle < 0)
 		{
-			Error(_log, "Could not open the framebuffer device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
+			Error(_log, "Could not open the amlogic device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
 		}
 		else
 		{
@@ -134,7 +140,7 @@ bool AmlogicGrabber::init()
 			}
 			else
 			{
-				Error(_log, "Could not get the framebuffer dimension for '%s' device. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
+				Error(_log, "Could not get the amlogic dimension for '%s' device. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
 				close(_handle);
 				_handle = -1;
 			}
@@ -158,6 +164,7 @@ bool AmlogicGrabber::isActivated()
 void AmlogicGrabber::enumerateDevices(bool silent)
 {
 	_deviceProperties.clear();
+	int maxDevice = 0;
 
 	for (int i = 0; i <= 16; i++)
 	{
@@ -173,8 +180,28 @@ void AmlogicGrabber::enumerateDevices(bool silent)
 			_deviceProperties.insert(path, properties);
 
 			if (!silent)
-				Info(_log, "Found FrameBuffer device: %s", QSTRING_CSTR(path));
+				Info(_log, "Found Framebuffer device: %s", QSTRING_CSTR(path));
+
+			maxDevice = i;
 		}
+	}	
+
+	//Alvaroti detecta amlogic
+	QString pathC = QString(DEFAULT_CAPTURE_DEVICE);
+	QString pathV = QString(DEFAULT_VIDEO_DEVICE);
+	//if (QFileInfo(pathC).exists() && QFileInfo(pathV).exists())
+	if (QFile::exists(DEFAULT_VIDEO_DEVICE) && QFile::exists(DEFAULT_CAPTURE_DEVICE))
+	{
+		DeviceProperties properties;
+		DevicePropertiesItem dpi;
+
+		dpi.input = maxDevice++;
+		properties.valid.append(dpi);
+
+		_deviceProperties.insert(pathC, properties);
+
+		if (!silent)
+			Info(_log, "Found Amlogic device: %s", QSTRING_CSTR(pathC));
 	}
 }
 
@@ -261,7 +288,7 @@ void AmlogicGrabber::grabFrame()
 
 						if (memHandle == MAP_FAILED)
 						{
-							Error(_log, "Could not map the framebuffer memory.");
+							Error(_log, "Could not map the amlogic memory.");
 							stopNow = true;
 						}
 						else
@@ -278,14 +305,14 @@ void AmlogicGrabber::grabFrame()
 					}
 					else
 					{
-						Error(_log, "Could not read the framebuffer properties.");
+						Error(_log, "Could not read the amlogic properties.");
 						stopNow = true;
 					}
 				}
 			}
 			else
 			{
-				Error(_log, "Could not read the framebuffer dimension.");
+				Error(_log, "Could not read the amlogic dimension.");
 				stopNow = true;
 			}
 		}
