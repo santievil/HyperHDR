@@ -102,6 +102,10 @@ if (ENABLE_FRAMEBUFFER)
 	target_link_libraries(hyperhdr framebuffer-grabber "${CMAKE_DL_LIBS}")
 endif ()
 
+if (ENABLE_AMLOGIC)
+	target_link_libraries(hyperhdr amlogic-grabber "${CMAKE_DL_LIBS}")
+endif ()
+
 if (ENABLE_PIPEWIRE)
 	target_link_libraries(hyperhdr Pipewire-grabber "${CMAKE_DL_LIBS}")
 endif ()
