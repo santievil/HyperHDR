@@ -5,6 +5,8 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/linux/amlogic)
 # Grabber
 FILE ( GLOB AMLOGIC_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
 
+message(STATUS "Amlogic sources: ${AMLOGIC_SOURCES}")
+
 add_library(amlogic-grabber OBJECT ${AMLOGIC_SOURCES} )
 
 #add_library(amlogic-grabber
@@ -29,18 +31,19 @@ add_library(amlogic-grabber OBJECT ${AMLOGIC_SOURCES} )
    # ${CMAKE_SOURCE_DIR}/sources/grabber/linux/amlogic/include/hyperion
    #${CMAKE_SOURCE_DIR}/include
 #)
-#set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/Qt6")
-target_include_directories(amlogic-grabber PRIVATE
-	${CMAKE_SOURCE_DIR}/include/utils-amlogic
-)
 
-find_package(Qt${Qt_VERSION} REQUIRED COMPONENTS Core Network Gui)
+#target_include_directories(amlogic-grabber PRIVATE
+	#${CMAKE_SOURCE_DIR}/include/utils-amlogic
+#)
+
+#find_package(Qt${Qt_VERSION} REQUIRED COMPONENTS Core Network Gui)
+find_package(Qt${Qt_VERSION} REQUIRED COMPONENTS Core Network)
 
 target_link_libraries(amlogic-grabber
 	# hyperion
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Gui
+	#Qt${Qt_VERSION}::Gui
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
