@@ -3,11 +3,24 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber/linux/amlogic)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/linux/amlogic)
 
 # Grabber
-FILE ( GLOB AMLOGIC_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
+#FILE ( GLOB AMLOGIC_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
+FILE ( GLOB AMLOGIC_SOURCES 
+    "${CURRENT_HEADER_DIR}/*.h" 
+    "${CURRENT_SOURCE_DIR}/*.cpp"
+    "${CURRENT_SOURCE_DIR}/AmlogicWrapper.cpp"
+)
+
 
 message(STATUS "Amlogic sources: ${AMLOGIC_SOURCES}")
 
 add_library(amlogic-grabber OBJECT ${AMLOGIC_SOURCES} )
+
+target_include_directories(amlogic-grabber PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/grabber/linux/amlogic
+    ${CMAKE_SOURCE_DIR}/sources/grabber/linux/amlogic
+)
+
 
 #add_library(amlogic-grabber
 #	${CMAKE_SOURCE_DIR}/sources/grabber/linux/amlogic/include/grabber/amlogic/AmlogicGrabber.h
