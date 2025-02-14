@@ -1,5 +1,27 @@
 #pragma once
 
+#include <base/SystemWrapper.h>
+#include <grabber/linux/amlogic/AmlogicGrabber.h>
+
+class AmlogicWrapper : public SystemWrapper
+{
+	Q_OBJECT
+
+public:
+	AmlogicWrapper(const QString& device, const QString& configurationPath);
+	bool isActivated(bool forced) override;
+
+protected:
+	QString getGrabberInfo() override;
+
+
+private:
+	AmlogicGrabber _grabber;
+};
+
+
+/*#pragma once
+
 #include <hyperion/GrabberWrapper.h>
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 
@@ -42,3 +64,4 @@ private:
 	/// The actual grabber
 	AmlogicGrabber  _grabber;
 };
+*/

@@ -1,5 +1,82 @@
 #pragma once
 
+// stl includes
+#include <vector>
+#include <map>
+#include <chrono>
+
+// Qt includes
+#include <QObject>
+#include <QSocketNotifier>
+#include <QRectF>
+#include <QMap>
+#include <QMultiMap>
+#include <QTimer>
+#include <QSemaphore>
+
+// util includes
+#include <utils/PixelFormat.h>
+#include <base/Grabber.h>
+#include <utils/Components.h>
+
+
+
+class AmlogicGrabber : public Grabber
+{
+	Q_OBJECT
+
+public:
+
+	AmlogicGrabber(const QString& device, const QString& configurationPath);
+
+	~AmlogicGrabber();
+
+	void setHdrToneMappingEnabled(int mode) override;
+
+	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
+
+	bool isActivated();
+
+	void stateChanged(bool state);
+
+private slots:
+
+	void grabFrame();
+
+public slots:
+
+	bool start() override;
+
+	void stop() override;
+
+	void newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin) override {};
+
+	void newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount) override {};
+
+private:
+	QString GetSharedLut();
+
+	void enumerateDevices(bool silent);
+
+	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
+
+	void getDevices();
+
+	bool init() override;
+
+	void uninit() override;
+
+private:
+	QString		_configurationPath;
+	QTimer		_timer;
+	QSemaphore	_semaphore;
+	int			_handle;
+};
+
+
+
+/*#pragma once
+
 // Utils includes
 #include <utils-amlogic/ColorBgr.h>
 #include <utils-amlogic/ColorRgba.h>
@@ -75,18 +152,17 @@ public:
 	///
 	bool setPixelDecimation(int pixelDecimation) override;
 
-private:
-	/**
-	 * Returns true if video is playing over the amlogic chip
-	 * @return True if video is playing else false
-	 */
+private:	
+	 /// Returns true if video is playing over the amlogic chip
+	 /// @return True if video is playing else false
+	 ///
 	bool isVideoPlaying();
 	void closeDevice(int &fd);
 	bool openDevice(int &fd, const char* dev);
 
 	int grabFrame_amvideocap(Image<ColorRgb> & image);
 
-	/** The snapshot/capture device of the amlogic video chip */
+	/// The snapshot/capture device of the amlogic video chip 
 	int             _captureDev;
 	int             _videoDev;
 
@@ -99,3 +175,4 @@ private:
 	FramebufferFrameGrabber _fbGrabber;
 	int             _grabbingModeNotification;
 };
+*/
