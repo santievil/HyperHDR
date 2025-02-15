@@ -223,10 +223,11 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 		dpi.input = maxDevice++;
 		properties.valid.append(dpi);
 
-		_deviceProperties.insert(pathC, properties);
+		//_deviceProperties.insert(pathC, properties);
+		_deviceProperties.insert(pathV, properties);
 
 		if (!silent)
-			Info(_log, "Found Amlogic device: %s", QSTRING_CSTR(pathC));
+			Info(_log, "Found Amlogic device: %s", QSTRING_CSTR(pathV));
 	}
 }
 
