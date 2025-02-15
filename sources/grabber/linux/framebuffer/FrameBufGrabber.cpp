@@ -50,6 +50,9 @@
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
+const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
+const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
+
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
@@ -185,6 +188,7 @@ bool FrameBufGrabber::isActivated()
 void FrameBufGrabber::enumerateDevices(bool silent)
 {
 	_deviceProperties.clear();
+	int maxDevice = 0;
 
 	for (int i = 0; i <= 16; i++)
 	{
@@ -201,8 +205,28 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 
 			if (!silent)
 				Info(_log, "Found FrameBuffer device: %s", QSTRING_CSTR(path));
+
+			maxDevice = i;
 		}
-	}	
+	}
+
+	//Alvaroti detecta amlogic
+	QString pathC = QString(DEFAULT_CAPTURE_DEVICE);
+	QString pathV = QString(DEFAULT_VIDEO_DEVICE);
+	//if (QFileInfo(pathC).exists() && QFileInfo(pathV).exists())
+	if (QFile::exists(DEFAULT_VIDEO_DEVICE) && QFile::exists(DEFAULT_CAPTURE_DEVICE))
+	{
+		DeviceProperties properties;
+		DevicePropertiesItem dpi;
+
+		dpi.input = maxDevice++;
+		properties.valid.append(dpi);
+
+		_deviceProperties.insert(pathC, properties);
+
+		if (!silent)
+			Info(_log, "Found Amlogic device: %s", QSTRING_CSTR(pathC));
+	}
 }
 
 bool FrameBufGrabber::start()
