@@ -138,7 +138,8 @@ bool FrameBufGrabber::init()
 		Info(_log, "Starting FrameBuffer grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");		
 
-		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
+		//_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY); Alvaroti
+		_handle = open(QSTRING_CSTR(foundDevice), O_RDWR);
 		if (_handle < 0)
 		{
 			Error(_log, "Could not open the framebuffer device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);			
