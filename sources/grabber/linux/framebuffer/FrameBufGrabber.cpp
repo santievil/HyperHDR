@@ -55,7 +55,7 @@ const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 typedef int64_t LONG_PTR, * PLONG_PTR;
 typedef LONG_PTR SSIZE_T, * PSSIZE_T;
-typedef SSIZE_T ssize_t;
+typedef SSIZE_T Missize_t;
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
@@ -317,7 +317,7 @@ void FrameBufGrabber::grabFrame()
 					int _bytesPerPixel = 3; // Valor por defecto (BGR24)
 
 					// Leer el frame
-					ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+					Missize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
 
 					if (bytesRead < 0 && errno != EAGAIN && errno > 0)
 					{
@@ -326,7 +326,7 @@ void FrameBufGrabber::grabFrame()
 					}
 					else
 					{
-						if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
+						if (bytesRead != -1 && static_cast<Missize_t>(_bytesToRead) != bytesRead)
 						{
 							ErrorIf(_lastError != 4, _log, "Capture failed to grab entire image [bytesToRead(%zu) != bytesRead(%zd)]", _bytesToRead, bytesRead);
 							_lastError = 4;
