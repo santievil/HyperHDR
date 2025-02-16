@@ -19,7 +19,41 @@
 #include <base/Grabber.h>
 #include <utils/Components.h>
 
+//AML
+#include "../sources/grabber/linux/amlogic/Amvideocap.h"
+struct ColorBgr
+{
+	/// The blue color channel
+	uint8_t blue;
+	/// The green color channel
+	uint8_t green;
+	/// The red color channel
+	uint8_t red;
 
+
+	/// 'Black' RgbColor (0, 0, 0)
+	static const ColorBgr BLACK;
+	/// 'Red' RgbColor (255, 0, 0)
+	static const ColorBgr RED;
+	/// 'Green' RgbColor (0, 255, 0)
+	static const ColorBgr GREEN;
+	/// 'Blue' RgbColor (0, 0, 255)
+	static const ColorBgr BLUE;
+	/// 'Yellow' RgbColor (255, 255, 0)
+	static const ColorBgr YELLOW;
+	/// 'White' RgbColor (255, 255, 255)
+	static const ColorBgr WHITE;
+};
+
+/*#define CAP_FLAG_AT_END			2
+#define AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH      		_IOW(AMVIDEOCAP_IOC_MAGIC, 0x02, int)
+#define AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT     		_IOW(AMVIDEOCAP_IOC_MAGIC, 0x03, int)
+#define AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS     	_IOW(AMVIDEOCAP_IOC_MAGIC, 0x05, unsigned long long)
+#define AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS     		_IOW(AMVIDEOCAP_IOC_MAGIC, 0x06, int)
+
+#define AMSTREAM_IOC_MAGIC 'S'
+#define AMSTREAM_IOC_GET_VIDEO_DISABLE	_IOR((AMSTREAM_IOC_MAGIC), 0x48, int)
+*/
 
 class FrameBufGrabber : public Grabber
 {
@@ -65,6 +99,20 @@ private:
 	bool init() override;
 
 	void uninit() override;
+
+	//AMLOGIC
+	bool isVideoPlayingAML();
+	void closeDeviceAML(int& fd);
+	bool openDeviceAML(int& fd, const char* dev);
+	int             _captureDev=-1;
+	int             _videoDev=-1;
+
+	Image<ColorBgr> _image_bgr;
+	void* _image_ptr;
+	ssize_t         _bytesToRead;
+
+	int             _lastError;
+	bool            _videoPlaying;
 		
 private:
 	QString		_configurationPath;

@@ -50,8 +50,12 @@
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
+const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
+typedef __int64 LONG_PTR, * PLONG_PTR;
+typedef LONG_PTR SSIZE_T, * PSSIZE_T;
+typedef SSIZE_T ssize_t;
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
@@ -224,10 +228,10 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 		properties.valid.append(dpi);
 
 		//_deviceProperties.insert(pathC, properties);
-		_deviceProperties.insert(pathV, properties);
+		_deviceProperties.insert(pathC, properties);
 
 		if (!silent)
-			Info(_log, "Found Amlogic device: %s", QSTRING_CSTR(pathV));
+			Info(_log, "Found Amlogic device: %s", QSTRING_CSTR(pathC));
 	}
 }
 
@@ -278,68 +282,142 @@ void FrameBufGrabber::grabFrame()
 	{
 		if (_initialized)
 		{
-			/// GETFRAME
-			struct fb_var_screeninfo scr;
-			bool isStillActive = false;
+			if (isVideoPlayingAML()) {
+				Info(_log, "Procesando video AML");
+				/// GETFRAME FROM /dev/amvideocap0
+				bool isStillActive = false;
 
-			if (ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
-			{
-				isStillActive = true;
-			}
-			else
-			{
-				Warning(_log, "The handle is lost. Trying to restart the driver.");
-
-				close(_handle);
-				_handle = open(QSTRING_CSTR(_actualDeviceName), O_RDONLY);
-
-				if (_handle >= 0 && ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
+				if (_captureDev < 0)
 				{
+					if (!openDeviceAML(_captureDev, DEFAULT_CAPTURE_DEVICE))
+					{
+						ErrorIf(_lastError != 1, _log, "Failed to open the AMLOGIC device (%d - %s):", errno, strerror(errno));
+						_lastError = 1;
+						//return -1;
+					}
 					isStillActive = true;
 				}
-			}
 
-			if (isStillActive)
-			{
-				_actualWidth = scr.xres;
-				_actualHeight = scr.yres;
+				long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
+				long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
+				long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
+				long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
-				if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
+				if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
 				{
-					struct fb_fix_screeninfo format;
+					ErrorIf(_lastError != 2, _log, "Failed to configure capture device (%d - %s)", errno, strerror(errno));
+					_lastError = 2;
+					//return -1;
+				}
+				else
+				{
+					isStillActive = true;
+					int linelen = ((_width + 31) & ~31) * 3;
+					size_t _bytesToRead = linelen * _height;
+					int _bytesPerPixel = 3; // Valor por defecto (BGR24)
 
-					if (ioctl(_handle, FBIOGET_FSCREENINFO, &format) >= 0)
+					// Leer el frame
+					ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+
+					if (bytesRead < 0 && errno != EAGAIN && errno > 0)
 					{
-						uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
-
-						if (memHandle == MAP_FAILED)
-						{
-							Error(_log, "Could not map the framebuffer memory.");
-							stopNow = true;
-						}
-						else
-						{
-							if (scr.bits_per_pixel == 32)
-								processSystemFrameBGRA(memHandle, format.line_length);
-							else if (scr.bits_per_pixel == 24)
-								processSystemFrameBGR(memHandle, format.line_length);
-							else if (scr.bits_per_pixel == 16)
-								processSystemFrameBGR16(memHandle, format.line_length);
-
-							munmap(memHandle, format.smem_len);
-						}						
+						ErrorIf(_lastError != 3, _log, "Capture frame failed - Retrying. Error [%d] - %s", errno, strerror(errno));
+						_lastError = 3;
 					}
 					else
 					{
-						Error(_log, "Could not read the framebuffer properties.");
-						stopNow = true;
+						if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
+						{
+							ErrorIf(_lastError != 4, _log, "Capture failed to grab entire image [bytesToRead(%zu) != bytesRead(%zd)]", _bytesToRead, bytesRead);
+							_lastError = 4;
+						}
+						else
+						{
+							// Calcular bytes por píxel
+							_bytesPerPixel = static_cast<int>(bytesRead / (_width * _height));
+							Debug(_log, "Detected bytes per pixel: %d", _bytesPerPixel);
+
+							// Procesar la imagen capturada
+							if (_bytesPerPixel == 4)
+								processSystemFrameBGRA(static_cast<uint8_t*>(_image_ptr), linelen);
+							else if (_bytesPerPixel == 3)
+								processSystemFrameBGR(static_cast<uint8_t*>(_image_ptr), linelen);
+							else if (_bytesPerPixel == 2)
+								processSystemFrameBGR16(static_cast<uint8_t*>(_image_ptr), linelen);
+							else
+								Error(_log, "Unsupported pixel format detected!");
+
+							_lastError = 0;
+						}
 					}
+
 				}
 			}
 			else
 			{
-				Error(_log, "Could not read the framebuffer dimension.");
-				stopNow = true;
+				/// GETFRAME
+				struct fb_var_screeninfo scr;
+				bool isStillActive = false;
+
+				if (ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
+				{
+					isStillActive = true;
+				}
+				else
+				{
+					Warning(_log, "The handle is lost. Trying to restart the driver.");
+
+					close(_handle);
+					_handle = open(QSTRING_CSTR(_actualDeviceName), O_RDONLY);
+
+					if (_handle >= 0 && ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
+					{
+						isStillActive = true;
+					}
+				}
+
+				if (isStillActive)
+				{
+					_actualWidth = scr.xres;
+					_actualHeight = scr.yres;
+
+					if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
+					{
+						struct fb_fix_screeninfo format;
+
+						if (ioctl(_handle, FBIOGET_FSCREENINFO, &format) >= 0)
+						{
+							uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
+
+							if (memHandle == MAP_FAILED)
+							{
+								Error(_log, "Could not map the framebuffer memory.");
+								stopNow = true;
+							}
+							else
+							{
+								if (scr.bits_per_pixel == 32)
+									processSystemFrameBGRA(memHandle, format.line_length);
+								else if (scr.bits_per_pixel == 24)
+									processSystemFrameBGR(memHandle, format.line_length);
+								else if (scr.bits_per_pixel == 16)
+									processSystemFrameBGR16(memHandle, format.line_length);
+
+								munmap(memHandle, format.smem_len);
+							}
+						}
+						else
+						{
+							Error(_log, "Could not read the framebuffer properties.");
+							stopNow = true;
+						}
+					}
+				}
+				else
+				{
+					Error(_log, "Could not read the framebuffer dimension.");
+					stopNow = true;
+				}
 			}
 		}
 		_semaphore.release();
@@ -358,4 +436,58 @@ void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 	_cropRight = cropRight;
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
+}
+
+void FrameBufGrabber::closeDeviceAML(int& fd)
+{
+	if (fd >= 0)
+	{
+		::close(fd);
+		fd = -1;
+	}
+}
+
+bool FrameBufGrabber::openDeviceAML(int& fd, const char* dev)
+{
+	bool rc = true;
+	if (fd < 0)
+	{
+		fd = ::open(dev, O_RDWR);
+		if (fd < 0)
+		{
+			rc = false;
+		}
+	}
+	return rc;
+}
+
+bool FrameBufGrabber::isVideoPlayingAML()
+{
+	bool rc = false;
+	if (QFile::exists(DEFAULT_VIDEO_DEVICE))
+	{
+		int videoDisabled = 1;
+		if (!openDeviceAML(_videoDev, DEFAULT_VIDEO_DEVICE))
+		{
+			Error(_log, "Failed to open video device(%s): %d - %s", DEFAULT_VIDEO_DEVICE, errno, strerror(errno));
+		}
+		else
+		{
+			// Check the video disabled flag
+			if (ioctl(_videoDev, AMSTREAM_IOC_GET_VIDEO_DISABLE, &videoDisabled) < 0)
+			{
+				Error(_log, "Failed to retrieve video state from device: %d - %s", errno, strerror(errno));
+				closeDeviceAML(_videoDev);
+			}
+			else
+			{
+				if (videoDisabled == 0)
+				{
+					rc = true;
+				}
+			}
+		}
+
+	}
+	return rc;
 }

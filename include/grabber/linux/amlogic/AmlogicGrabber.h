@@ -19,6 +19,9 @@
 #include <base/Grabber.h>
 #include <utils/Components.h>
 
+#define AMSTREAM_IOC_MAGIC 'S'
+#define AMSTREAM_IOC_GET_VIDEO_DISABLE	_IOR((AMSTREAM_IOC_MAGIC), 0x48, int)
+
 
 
 class AmlogicGrabber : public Grabber
@@ -65,6 +68,13 @@ private:
 	bool init() override;
 
 	void uninit() override;
+
+	//AMLOGIC
+	bool isVideoPlaying();
+	void closeDevice(int& fd);
+	bool openDevice(int& fd, const char* dev);
+	int             _captureDev;
+	int             _videoDev;
 
 private:
 	QString		_configurationPath;
