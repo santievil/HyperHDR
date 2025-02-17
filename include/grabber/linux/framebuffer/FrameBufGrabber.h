@@ -24,16 +24,6 @@
 #include <utils/ImageAML.h>
 #include <utils/ColorBgrAML.h>
 
-/*#define CAP_FLAG_AT_END			2
-#define AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH      		_IOW(AMVIDEOCAP_IOC_MAGIC, 0x02, int)
-#define AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT     		_IOW(AMVIDEOCAP_IOC_MAGIC, 0x03, int)
-#define AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS     	_IOW(AMVIDEOCAP_IOC_MAGIC, 0x05, unsigned long long)
-#define AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS     		_IOW(AMVIDEOCAP_IOC_MAGIC, 0x06, int)
-
-#define AMSTREAM_IOC_MAGIC 'S'
-#define AMSTREAM_IOC_GET_VIDEO_DISABLE	_IOR((AMSTREAM_IOC_MAGIC), 0x48, int)
-*/
-
 class FrameBufGrabber : public Grabber
 {
 	Q_OBJECT

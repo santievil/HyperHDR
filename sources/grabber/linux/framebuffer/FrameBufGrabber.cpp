@@ -76,7 +76,7 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 		Info(_log, "Resolución: %d x %d", _width, _height);
 	}
 
-	_image_ptr = _image_bgr.memptr();
+//	_image_ptr = _image_bgr.memptr();
 
 	getDevices();
 }
@@ -306,47 +306,72 @@ void FrameBufGrabber::grabFrame()
 						ErrorIf(_lastError != 1, _log, "Failed to open the AMLOGIC device (%d - %s):", errno, strerror(errno));
 						_lastError = 1;
 						//return -1;
+						isStillActive = false;
 					}
-					isStillActive = true;
-				}
-
-				long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
-				long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
-				long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
-				long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
-
-				if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
-				{
-					ErrorIf(_lastError != 2, _log, "Failed to configure capture device (%d - %s)", errno, strerror(errno));
-					_lastError = 2;
-					//return -1;
-				}
-				else
-				{
+					Info(_log, "amvideocap0 conectado");
 					Info(_log, "Dimensiones de la imagen: Ancho = %d, Alto = %d", _width, _height);
-					if (_image_ptr != nullptr) {
-						Info(_log, "Contenido de _image_ptr (primer byte): %d", static_cast<unsigned char*>(_image_ptr)[0]);
-					}
-					else {
-						Info(_log, "_image_ptr es nulo.");
-					}
-
-
 					isStillActive = true;
-					int linelen = ((_width + 31) & ~31) * 3;
-					size_t _bytesToRead = linelen * _height;
-					int _bytesPerPixel = 3; // Valor por defecto (BGR24)
+				}
 
-					// Leer el frame
-					ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+				if (isStillActive)
+				{
+					_image_ptr = _image_bgr.memptr();
+					_image_bgr.resize(static_cast<unsigned>(_width), static_cast<unsigned>(_height));
+									
+					long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
+					long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
+					long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
+					long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
-					if (bytesRead == -1) {
-						Info(_log, "Error en pread. Código de error: %d", errno);
+					Info(_log, "Resultados de ioctl:");
+					Info(_log, "  r1 (AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH): %ld", r1);
+					Info(_log, "  r2 (AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT): %ld", r2);
+					Info(_log, "  r3 (AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS): %ld", r3);
+					Info(_log, "  r4 (AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS): %ld", r4);
+
+
+					if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
+					{
+						ErrorIf(_lastError != 2, _log, "Failed to configure capture device (%d - %s)", errno, strerror(errno));
+						_lastError = 2;
+						//return -1;
+						isStillActive = false;
 					}
-					else {
-						Info(_log, "Bytes leídos correctamente: %zd", bytesRead);
-					}
+					else
+					{
+						int linelen = ((_width + 31) & ~31) * 3;
+						size_t _bytesToRead = linelen * _height;
+						int _bytesPerPixel = 3; // Valor por defecto (BGR24)
 
+						// Leer el frame
+						ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);				
+						if (bytesRead < 0 && errno != EAGAIN && errno > 0)
+						{
+							ErrorIf(_lastError != 3, _log, "Capture frame failed - Retrying. Error [%d] - %s", errno, strerror(errno));
+							_lastError = 3;
+							isStillActive = false;
+						}
+						else {
+							Info(_log, "Bytes leídos correctamente: %zd", bytesRead);
+							//If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
+							// EAGAIN : // 11 - Resource temporarily unavailable
+							// ENODATA: // 61 - No data available
+							if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
+							{
+								ErrorIf(_lastError != 4, _log, "Capture failed to grab entire image [bytesToRead(%zu) != bytesRead(%zd)]", _bytesToRead, bytesRead);
+								_lastError = 4;
+								isStillActive = false;
+							}
+						}
+					}
+					
+				}
+
+				
+
+				/*
+				else
+				{					
 
 					if (bytesRead < 0 && errno != EAGAIN && errno > 0)
 					{
@@ -380,11 +405,12 @@ void FrameBufGrabber::grabFrame()
 						}
 					}
 
-				}
+				}*/
 			}
 			else
 			{
 				/// GETFRAME
+				Info(_log, "Procesando FB");
 				struct fb_var_screeninfo scr;
 				bool isStillActive = false;
 
