@@ -21,29 +21,8 @@
 
 //AML
 #include "../sources/grabber/linux/amlogic/Amvideocap.h"
-struct ColorBgr
-{
-	/// The blue color channel
-	uint8_t blue;
-	/// The green color channel
-	uint8_t green;
-	/// The red color channel
-	uint8_t red;
-
-
-	/// 'Black' RgbColor (0, 0, 0)
-	static const ColorBgr BLACK;
-	/// 'Red' RgbColor (255, 0, 0)
-	static const ColorBgr RED;
-	/// 'Green' RgbColor (0, 255, 0)
-	static const ColorBgr GREEN;
-	/// 'Blue' RgbColor (0, 0, 255)
-	static const ColorBgr BLUE;
-	/// 'Yellow' RgbColor (255, 255, 0)
-	static const ColorBgr YELLOW;
-	/// 'White' RgbColor (255, 255, 255)
-	static const ColorBgr WHITE;
-};
+#include <utils/ImageAML.h>
+#include <utils/ColorBgrAML.h>
 
 /*#define CAP_FLAG_AT_END			2
 #define AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH      		_IOW(AMVIDEOCAP_IOC_MAGIC, 0x02, int)
@@ -107,9 +86,9 @@ private:
 	int             _captureDev=-1;
 	int             _videoDev=-1;
 
-	Image<ColorBgr> _image_bgr;
+	ImageAML<ColorBgr> _image_bgr;
 	void* _image_ptr;
-	ssize_t         _bytesToRead;
+	AMLssize_t      _bytesToRead;
 
 	int             _lastError;
 	bool            _videoPlaying;

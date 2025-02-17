@@ -10,6 +10,7 @@ add_library(framebuffer-grabber OBJECT ${FRAMEBUFFER_SOURCES} )
 target_link_libraries(framebuffer-grabber
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
+	Qt${Qt_VERSION}::Gui
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
