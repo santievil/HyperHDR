@@ -285,7 +285,6 @@ void FrameBufGrabber::grabFrame()
 	{
 		if (_initialized)
 		{
-			bool isAmlogicCaptureSuccessful = false;
 
 			if (isVideoPlayingAML()) {
 				Info(_log, "Procesando video AML");
@@ -299,7 +298,8 @@ void FrameBufGrabber::grabFrame()
 						ErrorIf(_lastError != 1, _log, "Failed to open the AMLOGIC device (%d - %s):", errno, strerror(errno));
 						_lastError = 1;
 						//return -1;
-						isStillActive = false;
+						//isStillActive = false;
+						stopNow = true;
 					}
 					Info(_log, "amvideocap0 conectado");
 					Info(_log, "_captureDev=%d", _captureDev);
@@ -327,8 +327,7 @@ void FrameBufGrabber::grabFrame()
 					{
 						ErrorIf(_lastError != 2, _log, "Failed to configure capture device (%d - %s)", errno, strerror(errno));
 						_lastError = 2;
-						//return -1;
-						isStillActive = false;
+						//isStillActive = false;
 					}
 					else
 					{
@@ -344,7 +343,8 @@ void FrameBufGrabber::grabFrame()
 						{
 							ErrorIf(_lastError != 3, _log, "Capture frame failed - Retrying. Error [%d] - %s", errno, strerror(errno));
 							_lastError = 3;
-							isStillActive = false;
+							//isStillActive = false;
+							stopNow = true;
 						}
 						else {
 							Info(_log, "Bytes leídos correctamente: %zd", bytesRead);
@@ -355,21 +355,18 @@ void FrameBufGrabber::grabFrame()
 							{
 								ErrorIf(_lastError != 4, _log, "Capture failed to grab entire image [bytesToRead(%zu) != bytesRead(%zd)]", _bytesToRead, bytesRead);
 								_lastError = 4;
-								isStillActive = false;
-							}
-							else {
-								bool isAmlogicCaptureSuccessful = true;
-							}
+								//isStillActive = false;
+								stopNow = true;
+							}							
 						}
 					}
 					
 				}
 				else
 				{
-					Error(_log, "Could not read the amlogic image dimension.");
+					Error(_log, "Could not read the amvideocap0.");
 					closeDeviceAML(_captureDev);
 					_captureDev = -1;
-					isStillActive = false;
 					stopNow = true;
 				}
 
@@ -413,8 +410,7 @@ void FrameBufGrabber::grabFrame()
 
 				}*/
 			}
-
-			if (!isAmlogicCaptureSuccessful)
+			else
 			{
 				/// GETFRAME
 				Info(_log, "Procesando FB");
