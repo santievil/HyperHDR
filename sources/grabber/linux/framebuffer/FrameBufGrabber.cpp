@@ -76,7 +76,7 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 		Info(_log, "Resolución: %d x %d", _width, _height);
 	}
 
-//	_image_ptr = _image_bgr.memptr();
+	_image_ptr = _image_bgr.memptr();
 
 	getDevices();
 }
@@ -315,8 +315,7 @@ void FrameBufGrabber::grabFrame()
 				}
 
 				if (isStillActive)
-				{
-					_image_ptr = _image_bgr.memptr();
+				{					
 					_image_bgr.resize(static_cast<unsigned>(_width), static_cast<unsigned>(_height));
 					Info(_log, "Dimensiones de la imagen: Ancho = %d, Alto = %d", _width, _height);
 					long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
