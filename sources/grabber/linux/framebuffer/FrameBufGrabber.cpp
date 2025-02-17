@@ -68,6 +68,8 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
 
 	_image_ptr = _image_bgr.memptr();
+	int size = _width * _height * sizeof(uint32_t);
+	void* base = malloc(size);
 
 	getDevices();
 }
@@ -344,9 +346,9 @@ void FrameBufGrabber::grabFrame()
 
 						for (int i = 0; i < iterations; ++i) {
 							// Ejecuta pread y maneja errores
-							ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+							ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
 							if (bytesRead == -1) {
-								Info(_log, "Retorno pread. Error [%d] - %s", errno, strerror(errno));
+								Info(_log, "Retorno pread bucle. Error [%d] - %s", errno, strerror(errno));
 								// Puedes agregar un manejo de errores más avanzado si es necesario
 							}
 							else {
