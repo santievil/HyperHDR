@@ -7,6 +7,9 @@ FILE ( GLOB FRAMEBUFFER_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DI
 
 add_library(framebuffer-grabber OBJECT ${FRAMEBUFFER_SOURCES} )
 
+message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+message(STATUS "Qt5Core_DIR: ${Qt5Core_DIR}")
+
 target_link_libraries(framebuffer-grabber
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
