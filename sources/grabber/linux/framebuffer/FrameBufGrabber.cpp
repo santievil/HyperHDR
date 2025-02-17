@@ -309,7 +309,8 @@ void FrameBufGrabber::grabFrame()
 						isStillActive = false;
 					}
 					Info(_log, "amvideocap0 conectado");
-					Info(_log, "Dimensiones de la imagen: Ancho = %d, Alto = %d", _width, _height);
+					Info(_log, "_captureDev=%d", _captureDev);
+					
 					isStillActive = true;
 				}
 
@@ -317,7 +318,7 @@ void FrameBufGrabber::grabFrame()
 				{
 					_image_ptr = _image_bgr.memptr();
 					_image_bgr.resize(static_cast<unsigned>(_width), static_cast<unsigned>(_height));
-									
+					Info(_log, "Dimensiones de la imagen: Ancho = %d, Alto = %d", _width, _height);
 					long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 					long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
 					long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
@@ -365,6 +366,14 @@ void FrameBufGrabber::grabFrame()
 						}
 					}
 					
+				}
+				else
+				{
+					Error(_log, "Could not read the amlogic image dimension.");
+					closeDeviceAML(_captureDev);
+					_captureDev = -1;
+					isStillActive = false;
+					stopNow = true;
 				}
 
 				
