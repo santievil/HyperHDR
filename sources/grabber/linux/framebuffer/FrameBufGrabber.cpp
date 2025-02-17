@@ -68,8 +68,9 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
 
 	//_image_ptr = _image_bgr.memptr();
-	
-	_image_ptr = malloc(_width * _height * sizeof(uint32_t));
+	int size = _width * _height * sizeof(uint32_t);
+	base = malloc(size);
+
 
 	getDevices();
 }
@@ -283,7 +284,6 @@ void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
 	const int interval_ms = 100;  // Intervalo de 100 ms
-	const int iterations = 1000;   // Número de iteraciones
 	
 	if (_semaphore.tryAcquire())
 	{
@@ -341,7 +341,24 @@ void FrameBufGrabber::grabFrame()
 						int _bytesPerPixel = 3; // Valor por defecto (BGR24)
 
 						// Leer el frame
-						Info(_log, "Bytes a leer (_bytesToRead): %zu", _bytesToRead);					
+						Info(_log, "Bytes a leer (_bytesToRead): %zu", _bytesToRead);
+
+
+						for (int i = 0; i < 10; ++i) {
+							// Ejecuta pread y maneja errores
+							ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
+							if (bytesRead == -1) {
+								Info(_log, "Retorno pread bucle. Error [%d] - %s", errno, strerror(errno));
+								// Puedes agregar un manejo de errores más avanzado si es necesario
+							}
+							else {
+								Info(_log, "Iteración %d: Captura exitosa", i + 1);
+							}
+
+							// Espera 100 ms
+							QThread::msleep(interval_ms);  // Esto espera en milisegundos
+						}
+
 
 						ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
 						Info(_log, "Retorno pread. Error [%d] - %s", errno, strerror(errno));
@@ -363,25 +380,7 @@ void FrameBufGrabber::grabFrame()
 								_lastError = 4;
 								//isStillActive = false;
 								stopNow = true;
-							}
-							else
-							{
-								// Calcular bytes por píxel
-								_bytesPerPixel = static_cast<int>(bytesRead / (_width * _height));
-								Debug(_log, "Detected bytes per pixel: %d", _bytesPerPixel);
-
-								// Procesar la imagen capturada
-								/*if (_bytesPerPixel == 4)
-									processSystemFrameBGRA(static_cast<uint8_t*>(_image_ptr), linelen);
-								else if (_bytesPerPixel == 3)
-									processSystemFrameBGR(static_cast<uint8_t*>(_image_ptr), linelen);
-								else if (_bytesPerPixel == 2)
-									processSystemFrameBGR16(static_cast<uint8_t*>(_image_ptr), linelen);
-								else
-									Error(_log, "Unsupported pixel format detected!");*/
-
-								_lastError = 0;
-							}
+							}							
 						}
 					}
 					
@@ -438,7 +437,6 @@ void FrameBufGrabber::grabFrame()
 			{
 				/// GETFRAME
 				Info(_log, "Procesando FB");
-				//free(_image_ptr);
 				struct fb_var_screeninfo scr;
 				bool isStillActive = false;
 
