@@ -67,15 +67,6 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
 
-	if (_width == 0 || _height == 0) {
-		_width = 1920;
-		_height = 1080;
-		Info(_log, "Ancho o alto no válido. Se asignaron valores por defecto: %d x %d", _width, _height);
-	}
-	else {
-		Info(_log, "Resolución: %d x %d", _width, _height);
-	}
-
 	_image_ptr = _image_bgr.memptr();
 
 	getDevices();
@@ -294,6 +285,8 @@ void FrameBufGrabber::grabFrame()
 	{
 		if (_initialized)
 		{
+			bool isAmlogicCaptureSuccessful = false;
+
 			if (isVideoPlayingAML()) {
 				Info(_log, "Procesando video AML");
 				/// GETFRAME FROM /dev/amvideocap0
@@ -344,7 +337,9 @@ void FrameBufGrabber::grabFrame()
 						int _bytesPerPixel = 3; // Valor por defecto (BGR24)
 
 						// Leer el frame
-						ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);				
+						Info(_log, "Bytes a leer (_bytesToRead): %zu", _bytesToRead);
+						ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+						Info(_log, "Retorno pread. Error [%d] - %s", errno, strerror(errno));
 						if (bytesRead < 0 && errno != EAGAIN && errno > 0)
 						{
 							ErrorIf(_lastError != 3, _log, "Capture frame failed - Retrying. Error [%d] - %s", errno, strerror(errno));
@@ -361,6 +356,9 @@ void FrameBufGrabber::grabFrame()
 								ErrorIf(_lastError != 4, _log, "Capture failed to grab entire image [bytesToRead(%zu) != bytesRead(%zd)]", _bytesToRead, bytesRead);
 								_lastError = 4;
 								isStillActive = false;
+							}
+							else {
+								bool isAmlogicCaptureSuccessful = true;
 							}
 						}
 					}
@@ -415,7 +413,8 @@ void FrameBufGrabber::grabFrame()
 
 				}*/
 			}
-			else
+
+			if (!isAmlogicCaptureSuccessful)
 			{
 				/// GETFRAME
 				Info(_log, "Procesando FB");
