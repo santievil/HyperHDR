@@ -325,7 +325,7 @@ void FrameBufGrabber::grabFrame()
 				{
 					Info(_log, "Dimensiones de la imagen: Ancho = %d, Alto = %d", _width, _height);
 					if (_image_ptr != nullptr) {
-						Info(_log, "Contenido de _image_ptr (primer byte): %d", *_image_ptr);
+						Info(_log, "Contenido de _image_ptr (primer byte): %d", static_cast<unsigned char*>(_image_ptr)[0]);
 					}
 					else {
 						Info(_log, "_image_ptr es nulo.");
