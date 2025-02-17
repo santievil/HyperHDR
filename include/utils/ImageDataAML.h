@@ -137,7 +137,7 @@ public:
 		return _pixels;
 	}
 
-	void toRgb(ImageDataAML<ColorRgb>& image) const
+	void toRgb(ImageDataAML<ColorRgbAML>& image) const
 	{
 		if (image.width() != _width || image.height() != _height)
 		{
@@ -149,7 +149,7 @@ public:
 		for (int idx = 0; idx < imageSize; idx++)
 		{
 			const Pixel_T & color = _pixels[idx];
-			image.memptr()[idx] = ColorRgb{color.red, color.green, color.blue};
+			image.memptr()[idx] = ColorRgbAML{color.red, color.green, color.blue};
 		}
 	}
 

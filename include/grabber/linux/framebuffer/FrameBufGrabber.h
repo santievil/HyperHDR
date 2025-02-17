@@ -88,7 +88,8 @@ private:
 
 	ImageAML<ColorBgr> _image_bgr;
 	void* _image_ptr;
-	AMLssize_t      _bytesToRead;
+	//AMLssize_t      _bytesToRead;
+	ssize_t      _bytesToRead;
 
 	int             _lastError;
 	bool            _videoPlaying;

@@ -55,7 +55,8 @@ const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 typedef int64_t LONG_PTR, * PLONG_PTR;
 typedef LONG_PTR SSIZE_T, * PSSIZE_T;
-typedef SSIZE_T AMLssize_t;
+//typedef SSIZE_T AMLssize_t;
+typedef SSIZE_T ssize_t;
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
