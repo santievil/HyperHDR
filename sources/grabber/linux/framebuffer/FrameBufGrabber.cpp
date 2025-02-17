@@ -371,14 +371,14 @@ void FrameBufGrabber::grabFrame()
 								Debug(_log, "Detected bytes per pixel: %d", _bytesPerPixel);
 
 								// Procesar la imagen capturada
-								if (_bytesPerPixel == 4)
+								/*if (_bytesPerPixel == 4)
 									processSystemFrameBGRA(static_cast<uint8_t*>(_image_ptr), linelen);
 								else if (_bytesPerPixel == 3)
 									processSystemFrameBGR(static_cast<uint8_t*>(_image_ptr), linelen);
 								else if (_bytesPerPixel == 2)
 									processSystemFrameBGR16(static_cast<uint8_t*>(_image_ptr), linelen);
 								else
-									Error(_log, "Unsupported pixel format detected!");
+									Error(_log, "Unsupported pixel format detected!");*/
 
 								_lastError = 0;
 							}
@@ -438,7 +438,7 @@ void FrameBufGrabber::grabFrame()
 			{
 				/// GETFRAME
 				Info(_log, "Procesando FB");
-				free(_image_ptr);
+				//free(_image_ptr);
 				struct fb_var_screeninfo scr;
 				bool isStillActive = false;
 
