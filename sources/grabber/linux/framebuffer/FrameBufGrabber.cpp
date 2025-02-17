@@ -280,6 +280,8 @@ void FrameBufGrabber::stop()
 void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
+	const int interval_ms = 100;  // Intervalo de 100 ms
+	const int iterations = 1000;   // Número de iteraciones
 	
 	if (_semaphore.tryAcquire())
 	{
@@ -290,6 +292,7 @@ void FrameBufGrabber::grabFrame()
 				Info(_log, "Procesando video AML");
 				/// GETFRAME FROM /dev/amvideocap0
 				bool isStillActive = false;
+				_captureDev = -1;
 
 				if (_captureDev < 0)
 				{
@@ -337,6 +340,24 @@ void FrameBufGrabber::grabFrame()
 
 						// Leer el frame
 						Info(_log, "Bytes a leer (_bytesToRead): %zu", _bytesToRead);
+
+
+						for (int i = 0; i < iterations; ++i) {
+							// Ejecuta pread y maneja errores
+							ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+							if (bytesRead == -1) {
+								Info(_log, "Retorno pread. Error [%d] - %s", errno, strerror(errno));
+								// Puedes agregar un manejo de errores más avanzado si es necesario
+							}
+							else {
+								Info(_log, "Iteración %d: Captura exitosa", i + 1);
+							}
+
+							// Espera 100 ms
+							QThread::msleep(interval_ms);  // Esto espera en milisegundos
+						}
+
+
 						ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
 						Info(_log, "Retorno pread. Error [%d] - %s", errno, strerror(errno));
 						if (bytesRead < 0 && errno != EAGAIN && errno > 0)
