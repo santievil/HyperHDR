@@ -67,6 +67,15 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
 
+	if (_width == 0 || _height == 0) {
+		_width = 1920;
+		_height = 1080;
+		Info(_log, "Ancho o alto no válido. Se asignaron valores por defecto: %d x %d", _width, _height);
+	}
+	else {
+		Info(_log, "Resolución: %d x %d", _width, _height);
+	}
+
 	_image_ptr = _image_bgr.memptr();
 
 	getDevices();
@@ -314,6 +323,15 @@ void FrameBufGrabber::grabFrame()
 				}
 				else
 				{
+					Info(_log, "Dimensiones de la imagen: Ancho = %d, Alto = %d", _width, _height);
+					if (_image_ptr != nullptr) {
+						Info(_log, "Contenido de _image_ptr (primer byte): %d", *_image_ptr);
+					}
+					else {
+						Info(_log, "_image_ptr es nulo.");
+					}
+
+
 					isStillActive = true;
 					int linelen = ((_width + 31) & ~31) * 3;
 					size_t _bytesToRead = linelen * _height;
@@ -321,6 +339,14 @@ void FrameBufGrabber::grabFrame()
 
 					// Leer el frame
 					ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+
+					if (bytesRead == -1) {
+						Info(_log, "Error en pread. Código de error: %d", errno);
+					}
+					else {
+						Info(_log, "Bytes leídos correctamente: %zd", bytesRead);
+					}
+
 
 					if (bytesRead < 0 && errno != EAGAIN && errno > 0)
 					{
