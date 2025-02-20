@@ -84,6 +84,11 @@ private:
 
 	int             _lastError;
 	bool            _videoPlaying;
+	bool _usingAmlogic = false; // Indica si estamos usando Amlogic
+	void initAmlogic();
+	void stopAmlogic();
+	void grabFrameAmlogic();
+	void grabFrameFramebuffer();
 		
 private:
 	QString		_configurationPath;
