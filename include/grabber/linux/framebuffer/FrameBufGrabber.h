@@ -88,7 +88,7 @@ private:
 	void initAmlogic();
 	void stopAmlogic();
 	void grabFrameAmlogic();
-	void grabFrameFramebuffer();
+	bool grabFrameFramebuffer();
 		
 private:
 	QString		_configurationPath;
