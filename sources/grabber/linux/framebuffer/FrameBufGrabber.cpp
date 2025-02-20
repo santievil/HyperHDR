@@ -228,7 +228,7 @@ bool FrameBufGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "start failed (%s)", e.what());
+		Error(_log, "Start failed (%s)", e.what());
 	}
 
 	return false;
@@ -256,8 +256,7 @@ void FrameBufGrabber::stop()
 void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
-	const int interval_ms = 100;  // Intervalo de 100 ms
-
+	
 	if (_semaphore.tryAcquire())
 	{
 		if (_initialized)
@@ -270,72 +269,105 @@ void FrameBufGrabber::grabFrame()
 			{
 				if (isVideoPlaying)
 				{
+					Info(_log, "Cambiamos a AML");
 					// Cambiar a Amlogic
-					stop(); // Detener el framebuffer
-					_usingAmlogic = true;
+					uninit(); // Detener el framebuffer					
 					initAmlogic(); // Inicializar amvideocap0
 				}
 				else
 				{
+					Info(_log, "Cambiamos a FB");
 					// Cambiar a framebuffer
 					stopAmlogic(); // Detener amvideocap0
-					_usingAmlogic = false;
-					init(); // Reiniciar el framebuffer
+					start(); // Reiniciar el framebuffer
 				}
 			}
 
 			// Capturar el frame según el dispositivo actual
 			if (_usingAmlogic)
 			{
+				Info(_log, "Capturando AML");
 				grabFrameAmlogic();
 			}
 			else
 			{
-				grabFrameFramebuffer();
+				Info(_log, "Capturando FB");
+				stopNow = grabFrameFramebuffer();
+				if (stopNow)
+				{
+					uninit();
+				}
 			}
 		}
 		_semaphore.release();
-	}
-
-	if (stopNow)
-	{
-		uninit();
-	}
+	}	
 }
 
 
-void FrameBufGrabber::grabFrameFramebuffer()
+bool FrameBufGrabber::grabFrameFramebuffer()
 {
 	struct fb_var_screeninfo scr;
-	if (ioctl(_handle, FBIOGET_VSCREENINFO, &scr) != 0)
+	bool isStillActive = false;
+	if (ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
 	{
-		Error(_log, "Failed to get framebuffer info");
-		return;
+		isStillActive = true;
+	}
+	else
+	{
+		Warning(_log, "The handle is lost. Trying to restart the driver.");
+
+		close(_handle);
+		_handle = open(QSTRING_CSTR(_actualDeviceName), O_RDONLY);
+
+		if (_handle >= 0 && ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
+		{
+			isStillActive = true;
+		}
 	}
 
-	struct fb_fix_screeninfo format;
-	if (ioctl(_handle, FBIOGET_FSCREENINFO, &format) < 0)
+	if (isStillActive)
 	{
-		Error(_log, "Could not read the framebuffer properties.");
-		return;
-	}
+		_actualWidth = scr.xres;
+		_actualHeight = scr.yres;
 
-	uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
-	if (memHandle == MAP_FAILED)
+		if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
+		{
+			struct fb_fix_screeninfo format;
+
+			if (ioctl(_handle, FBIOGET_FSCREENINFO, &format) >= 0)
+			{
+				uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
+
+				if (memHandle == MAP_FAILED)
+				{
+					Error(_log, "Could not map the framebuffer memory.");
+					return true;
+				}
+				else
+				{
+					if (scr.bits_per_pixel == 32)
+						processSystemFrameBGRA(memHandle, format.line_length);
+					else if (scr.bits_per_pixel == 24)
+						processSystemFrameBGR(memHandle, format.line_length);
+					else if (scr.bits_per_pixel == 16)
+						processSystemFrameBGR16(memHandle, format.line_length);
+
+					munmap(memHandle, format.smem_len);
+					return false;
+				}
+			}
+			else
+			{
+				Error(_log, "Could not read the framebuffer properties.");
+				return true;
+			}
+		}
+	}
+	else
 	{
-		Error(_log, "Failed to map framebuffer memory");
-		return;
+		Error(_log, "Could not read the framebuffer dimension.");
+		return true;
 	}
-
-	// Procesar el frame según la profundidad de color
-	if (scr.bits_per_pixel == 32)
-		processSystemFrameBGRA(memHandle, format.line_length);
-	else if (scr.bits_per_pixel == 24)
-		processSystemFrameBGR(memHandle, format.line_length);
-	else if (scr.bits_per_pixel == 16)
-		processSystemFrameBGR16(memHandle, format.line_length);
-
-	munmap(memHandle, format.smem_len);
 }
 
 void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -387,7 +419,11 @@ void FrameBufGrabber::initAmlogic()
 			return;
 		}
 
+		_timer.setInterval(1000 / _fps);
+		_timer.start();
+
 		_initialized = true;
+		_usingAmlogic = true;
 		Info(_log, "Amlogic capture device initialized");
 	}
 }
@@ -396,12 +432,23 @@ void FrameBufGrabber::stopAmlogic()
 {
 	if (_initialized)
 	{
-		if (_captureDev >= 0)
+		_semaphore.acquire();
+		_timer.stop();
+
+		if (_captureDev >= 0 && _videoDev >= 0)
 		{
-			close(_captureDev);
-			_captureDev = -1;
+			closeDeviceAML(_captureDev);
 		}
+		
+		if (openDeviceAML(_videoDev, DEFAULT_VIDEO_DEVICE))
+		{
+			closeDeviceAML(_videoDev);
+		}
+
 		_initialized = false;
+		_usingAmlogic = false;
+
+		_semaphore.release();
 		Info(_log, "Amlogic capture device stopped");
 	}
 }
@@ -432,6 +479,7 @@ bool FrameBufGrabber::openDeviceAML(int& fd, const char* dev)
 bool FrameBufGrabber::isVideoPlayingAML()
 {
 	bool rc = false;
+	Info(_log, "Comprobando video AML");
 	if (QFile::exists(DEFAULT_VIDEO_DEVICE))
 	{
 		int videoDisabled = 1;
