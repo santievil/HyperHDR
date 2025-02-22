@@ -303,10 +303,10 @@ void FrameBufGrabber::grabFrame()
 		catch (const std::exception& e) {
 			Error(_log, "Error al capturar el frame: %s", e.what());
 		}
-		finally {
-			// Liberamos el semáforo para permitir la captura en el siguiente ciclo
-			_semaphore.release();
-		}
+		
+		// Liberamos el semáforo para permitir la captura en el siguiente ciclo
+		_semaphore.release();
+		
 	}
 }
 
