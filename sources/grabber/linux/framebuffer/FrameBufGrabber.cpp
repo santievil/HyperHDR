@@ -87,7 +87,6 @@ void FrameBufGrabber::uninit()
 	{
 		stop();
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
-		Info(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName)); //quitar
 	}
 
 	_initialized = false;
@@ -254,29 +253,31 @@ void FrameBufGrabber::grabFrame()
 		try {
 			if (_initialized) {
 				// Verificar si hay video en Amlogic
-				bool isVideoPlaying = isVideoPlayingAML();				
+				bool isVideoPlaying = isVideoPlayingAML();
 
 				// Cambiar de dispositivo si es necesario
 				if (isVideoPlaying != _usingAmlogic) {
 					if (isVideoPlaying) {
 						Info(_log, "Cambiamos a AML");
 						// Cambiar a Amlogic
-						uninit(); // Detener el framebuffer
+						//uninit(); // Detener el framebuffer
 						//initAmlogic(); // Inicializar amvideocap0
 					}
 					else {
 						Info(_log, "Cambiamos a FB");
 						// Cambiar a framebuffer
 						//stopAmlogic(); // Detener amvideocap0
-						start(); // Reiniciar el framebuffer
+						//start(); // Reiniciar el framebuffer
 					}
 				}
 
 				// Capturar el frame según el dispositivo actual
-				if (_usingAmlogic) {					
-					grabFrameAmlogic();
+				if (_usingAmlogic) {
+					Info(_log, "Capturando AML");
+					//grabFrameAmlogic();
 				}
-				else {					
+				else {
+					Info(_log, "Capturando FB");
 					stopNow = grabFrameFramebuffer();
 					if (stopNow) {
 						uninit();
