@@ -407,3 +407,4 @@ bool FrameBufGrabber::isVideoPlayingAML()
 
 	}
 	return rc;
+}
