@@ -50,6 +50,12 @@
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
+const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
+const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
+const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
+typedef int64_t LONG_PTR, * PLONG_PTR;
+typedef LONG_PTR SSIZE_T, * PSSIZE_T;
+
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
@@ -370,3 +376,34 @@ void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
 }
+
+
+bool FrameBufGrabber::isVideoPlayingAML()
+{
+	bool rc = false;
+	if (QFile::exists(DEFAULT_VIDEO_DEVICE))
+	{
+		int videoDisabled = 1;
+		if (!openDeviceAML(_videoDev, DEFAULT_VIDEO_DEVICE))
+		{
+			Error(_log, "Failed to open video device(%s): %d - %s", DEFAULT_VIDEO_DEVICE, errno, strerror(errno));
+		}
+		else
+		{
+			// Check the video disabled flag
+			if (ioctl(_videoDev, AMSTREAM_IOC_GET_VIDEO_DISABLE, &videoDisabled) < 0)
+			{
+				Error(_log, "Failed to retrieve video state from device: %d - %s", errno, strerror(errno));
+				closeDeviceAML(_videoDev);
+			}
+			else
+			{
+				if (videoDisabled == 0)
+				{
+					rc = true;
+				}
+			}
+		}
+
+	}
+	return rc;
