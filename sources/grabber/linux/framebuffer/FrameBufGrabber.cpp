@@ -96,6 +96,8 @@ void FrameBufGrabber::uninit()
 	{
 		stop();
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Info(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName)); //quitar
+
 	}
 
 	_initialized = false;
@@ -176,7 +178,7 @@ bool FrameBufGrabber::init()
 			}
 		}
 	}
-
+	Info(_log, "Iniciando FB: %d", _initialized); //quitar
 	return _initialized;
 }
 
@@ -216,21 +218,24 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 
 bool FrameBufGrabber::start()
 {
+	Info(_log, "Trying to start framebuffer...");
 	try
 	{
 		if (init())
 		{
 			_timer.setInterval(1000 / _fps);
 			_timer.start();
-			Info(_log, "Started");
+			Info(_log, "Framebuffer capture started successfully.");
 			return true;
 		}
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "Start failed (%s)", e.what());
+		Error(_log, "Framebuffer start failed (%s)", e.what());
 	}
 
+	Error(_log, "Failed to restart framebuffer.");
+	Info(_log, "Failed to restart framebuffer."); //quitar
 	return false;
 }
 
@@ -256,51 +261,53 @@ void FrameBufGrabber::stop()
 void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
-	
-	if (_semaphore.tryAcquire())
-	{
-		if (_initialized)
-		{
-			// Verificar si hay video en Amlogic
-			bool isVideoPlaying = isVideoPlayingAML();
 
-			// Cambiar de dispositivo si es necesario
-			if (isVideoPlaying != _usingAmlogic)
-			{
-				if (isVideoPlaying)
-				{
-					Info(_log, "Cambiamos a AML");
-					// Cambiar a Amlogic
-					uninit(); // Detener el framebuffer					
-					initAmlogic(); // Inicializar amvideocap0
-				}
-				else
-				{
-					Info(_log, "Cambiamos a FB");
-					// Cambiar a framebuffer
-					stopAmlogic(); // Detener amvideocap0
-					start(); // Reiniciar el framebuffer
-				}
-			}
+	// Aseguramos que solo haya un hilo ejecutando la captura
+	if (_semaphore.tryAcquire()) {
+		try {
+			if (_initialized) {
+				// Verificar si hay video en Amlogic
+				bool isVideoPlaying = isVideoPlayingAML();
+				Info(_log, "Comprobando video AML");
 
-			// Capturar el frame según el dispositivo actual
-			if (_usingAmlogic)
-			{
-				Info(_log, "Capturando AML");
-				grabFrameAmlogic();
-			}
-			else
-			{
-				Info(_log, "Capturando FB");
-				stopNow = grabFrameFramebuffer();
-				if (stopNow)
-				{
-					uninit();
+				// Cambiar de dispositivo si es necesario
+				if (isVideoPlaying != _usingAmlogic) {
+					if (isVideoPlaying) {
+						Info(_log, "Cambiamos a AML");
+						// Cambiar a Amlogic
+						uninit(); // Detener el framebuffer
+						initAmlogic(); // Inicializar amvideocap0
+					}
+					else {
+						Info(_log, "Cambiamos a FB");
+						// Cambiar a framebuffer
+						stopAmlogic(); // Detener amvideocap0
+						start(); // Reiniciar el framebuffer
+					}
+				}
+
+				// Capturar el frame según el dispositivo actual
+				if (_usingAmlogic) {
+					Info(_log, "Capturando AML");
+					grabFrameAmlogic();
+				}
+				else {
+					Info(_log, "Capturando FB");
+					stopNow = grabFrameFramebuffer();
+					if (stopNow) {
+						uninit();
+					}
 				}
 			}
 		}
-		_semaphore.release();
-	}	
+		catch (const std::exception& e) {
+			Error(_log, "Error al capturar el frame: %s", e.what());
+		}
+		finally {
+			// Liberamos el semáforo para permitir la captura en el siguiente ciclo
+			_semaphore.release();
+		}
+	}
 }
 
 
@@ -315,6 +322,7 @@ bool FrameBufGrabber::grabFrameFramebuffer()
 	else
 	{
 		Warning(_log, "The handle is lost. Trying to restart the driver.");
+		Info(_log, "The handle is lost. Trying to restart the driver."); //quitar
 
 		close(_handle);
 		_handle = open(QSTRING_CSTR(_actualDeviceName), O_RDONLY);
@@ -408,48 +416,51 @@ void FrameBufGrabber::grabFrameAmlogic()
 	processSystemFrameBGR(static_cast<uint8_t*>(_image_ptr), linelen);
 }
 
-void FrameBufGrabber::initAmlogic()
+bool FrameBufGrabber::initAmlogic()
 {
-	if (!_initialized)
-	{
-		_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR);
-		if (_captureDev < 0)
-		{
-			Error(_log, "Failed to open Amlogic capture device: %s", strerror(errno));
-			return;
+	Info(_log, "Intentando iniciar AML...");
+	try {
+		if (!_initialized) {
+			_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR);
+			if (_captureDev < 0) {
+				Error(_log, "Error al abrir el dispositivo de captura Amlogic: %s", strerror(errno));
+				return false;
+			}
+
+			_timer.setInterval(1000 / _fps);
+			_timer.start();
+
+			_initialized = true;
+			_usingAmlogic = true;
+			Info(_log, "Captura Amlogic iniciada exitosamente.");
+			return true;
 		}
-
-		_timer.setInterval(1000 / _fps);
-		_timer.start();
-
-		_initialized = true;
-		_usingAmlogic = true;
-		Info(_log, "Amlogic capture device initialized");
 	}
+	catch (const std::exception& e) {
+		Error(_log, "Fallo al iniciar Amlogic: %s", e.what());
+	}
+	Error(_log, "Fallo al iniciar Amlogic.");
+	return false;
 }
 
 void FrameBufGrabber::stopAmlogic()
 {
-	if (_initialized)
-	{
-		_semaphore.acquire();
-		_timer.stop();
+	Info(_log, "Deteniendo captura Amlogic...");
+	if (_initialized) {
+		_semaphore.acquire(); // Aseguramos que no haya conflictos al detener la captura
+		try {
+			_timer.stop();
 
-		if (_captureDev >= 0 && _videoDev >= 0)
-		{
-			closeDeviceAML(_captureDev);
+			if (_captureDev >= 0) closeDeviceAML(_captureDev);
+			if (_videoDev >= 0) closeDeviceAML(_videoDev);
+			_initialized = false;
+			_usingAmlogic = false;
+			Info(_log, "Captura Amlogic detenida.");
 		}
-		
-		if (openDeviceAML(_videoDev, DEFAULT_VIDEO_DEVICE))
-		{
-			closeDeviceAML(_videoDev);
+		catch (const std::exception& e) {
+			Error(_log, "Error al detener la captura Amlogic: %s", e.what());
 		}
-
-		_initialized = false;
-		_usingAmlogic = false;
-
-		_semaphore.release();
-		Info(_log, "Amlogic capture device stopped");
+		_semaphore.release(); // Liberamos el semáforo
 	}
 }
 
@@ -478,8 +489,7 @@ bool FrameBufGrabber::openDeviceAML(int& fd, const char* dev)
 
 bool FrameBufGrabber::isVideoPlayingAML()
 {
-	bool rc = false;
-	Info(_log, "Comprobando video AML");
+	bool rc = false;	
 	if (QFile::exists(DEFAULT_VIDEO_DEVICE))
 	{
 		int videoDisabled = 1;

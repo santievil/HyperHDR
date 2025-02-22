@@ -85,7 +85,7 @@ private:
 	int             _lastError;
 	bool            _videoPlaying;
 	bool _usingAmlogic = false; // Indica si estamos usando Amlogic
-	void initAmlogic();
+	bool initAmlogic();
 	void stopAmlogic();
 	void grabFrameAmlogic();
 	bool grabFrameFramebuffer();
