@@ -378,6 +378,29 @@ void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 }
 
 
+void FrameBufGrabber::closeDeviceAML(int& fd)
+{
+	if (fd >= 0)
+	{
+		::close(fd);
+		fd = -1;
+	}
+}
+
+bool FrameBufGrabber::openDeviceAML(int& fd, const char* dev)
+{
+	bool rc = true;
+	if (fd < 0)
+	{
+		fd = ::open(dev, O_RDWR);
+		if (fd < 0)
+		{
+			rc = false;
+		}
+	}
+	return rc;
+}
+
 bool FrameBufGrabber::isVideoPlayingAML()
 {
 	bool rc = false;
