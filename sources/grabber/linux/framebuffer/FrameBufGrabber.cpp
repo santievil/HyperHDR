@@ -267,7 +267,7 @@ void FrameBufGrabber::grabFrame()
 						Info(_log, "Cambiamos a AML");
 						// Cambiar a Amlogic
 						//uninit(); // Detener el framebuffer
-						//initAmlogic(); // Inicializar amvideocap0
+						initAmlogic(); // Inicializar amvideocap0
 					}
 					else {
 						Info(_log, "Cambiamos a FB");
@@ -377,6 +377,63 @@ void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 	_cropBottom = cropBottom;
 }
 
+bool FrameBufGrabber::initAmlogic()
+{
+	Info(_log, "Intentando iniciar AML...");
+	try {
+		if (!_initialized) {
+			/*_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR);
+			if (_captureDev < 0) {
+				Error(_log, "Error al abrir el dispositivo de captura Amlogic: %s", strerror(errno));
+				return false;
+			}*/
+			int maxRetries = 100;
+			int retryCount = 0;
+
+			while ((_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR)) < 0 && retryCount < maxRetries) {
+				Warning(_log, "Error al abrir el dispositivo de captura Amlogic: %s. Reintentando... (%d/%d)", strerror(errno), retryCount + 1, maxRetries);
+				QThread::usleep(100000); // Espera de 100ms antes de reintentar
+				retryCount++;
+			}
+
+			if (_captureDev < 0) return false;
+
+			_timer.setInterval(1000 / _fps);
+			_timer.start();
+
+			_initialized = true;
+			_usingAmlogic = true;
+			Info(_log, "Captura Amlogic iniciada exitosamente.");
+			return true;
+		}
+	}
+	catch (const std::exception& e) {
+		Error(_log, "Fallo al iniciar Amlogic: %s", e.what());
+	}
+	Error(_log, "Fallo al iniciar Amlogic.");
+	return false;
+}
+
+void FrameBufGrabber::stopAmlogic()
+{
+	Info(_log, "Deteniendo captura Amlogic...");
+	if (_initialized) {
+		_semaphore.acquire(); // Aseguramos que no haya conflictos al detener la captura
+		try {
+			_timer.stop();
+
+			if (_captureDev >= 0) closeDeviceAML(_captureDev);
+			if (_videoDev >= 0) closeDeviceAML(_videoDev);
+			_initialized = false;
+			_usingAmlogic = false;
+			Info(_log, "Captura Amlogic detenida.");
+		}
+		catch (const std::exception& e) {
+			Error(_log, "Error al detener la captura Amlogic: %s", e.what());
+		}
+		_semaphore.release(); // Liberamos el semáforo
+	}
+}
 
 void FrameBufGrabber::closeDeviceAML(int& fd)
 {
