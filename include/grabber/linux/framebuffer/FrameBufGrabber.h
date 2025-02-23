@@ -83,7 +83,7 @@ private:
 	//AMLssize_t      _bytesToRead;
 	ssize_t      _bytesToRead;
 
-	int             _lastError;
+	int             _lastErrorAML;
 	bool            _videoPlaying;
 	bool _usingAmlogic = false; // Indica si estamos usando Amlogic
 	bool initAmlogic();
