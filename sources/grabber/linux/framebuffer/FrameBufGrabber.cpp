@@ -273,7 +273,7 @@ void FrameBufGrabber::grabFrame()
 					else {
 						Info(_log, "Cambiamos a FB");
 						// Cambiar a framebuffer
-						_usingAmlogic = stopAmlogic(); // Detener amvideocap0
+						_usingAmlogic = !stopAmlogic(); // Detener amvideocap0. Si tiene exito, devuelve true, asi que lo negamos.
 						//start(); // Reiniciar el framebuffer
 					}
 				}
