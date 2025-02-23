@@ -66,6 +66,7 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
 
 	getDevices();
+	_lastErrorAML = 0;
 }
 
 QString FrameBufGrabber::GetSharedLut()
@@ -280,7 +281,7 @@ void FrameBufGrabber::grabFrame()
 
 				// Capturar el frame según el dispositivo actual
 				if (_usingAmlogic) {
-					if (!checkAML)	Info(_log, "Capturando AML");
+					if (!checkAML)	Info(_log, "Capturando AML. checkAML = %d", checkAML);
 					checkAML = grabFrameAmlogic();
 				}
 				else {
@@ -381,7 +382,6 @@ void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 
 bool FrameBufGrabber::grabFrameAmlogic()
 {
-	// Configurar y capturar desde amvideocap0
 	long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 	long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
 	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
@@ -392,43 +392,39 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		Error(_log, "Failed to configure Amlogic capture device");
 		return false;
 	}
-
-	int linelen = ((_width + 31) & ~31) * 3;
-	size_t _bytesToRead = linelen * _height;
-
-	ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
-	if (bytesRead < 0)
+	else
 	{
-		Error(_log, "Failed to read frame from Amlogic device: %s", strerror(errno));
-		return false;
-	}
+		int linelen = ((_width + 31) & ~31) * 3;
+		size_t _bytesToRead = linelen * _height;
 
-	return true;
+		// Read the snapshot into the memory
+		//ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+		ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
 
-	/*int retryCount = 0;
-	const int maxRetries = 100;
-	const int interval_ms = 100; // 100 ms de espera entre intentos
-
-	while (retryCount < maxRetries) {
-		ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
-
-		if (bytesRead != -1) {
-			Info(_log, "Iteración %d: Captura exitosa", retryCount + 1);
-			break; // Sale del bucle si la lectura fue exitosa
+		if (bytesRead < 0 && !EAGAIN && errno > 0)
+		{
+			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));
+			return false;
 		}
-
-		Info(_log, "Retorno pread intento %d. Error [%d] - %s", retryCount + 1, errno, strerror(errno));
-		QThread::msleep(interval_ms); // Espera antes de reintentar
-		retryCount++;
+		else
+		{
+			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
+			{
+				// Read of snapshot failed
+				Error(_log, "Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
+				return false;
+			}
+			else {
+				//If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
+				// EAGAIN : // 11 - Resource temporarily unavailable
+				// ENODATA: // 61 - No data available
+				//uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
+				//processSystemFrameBGR(memHandle, linelen);
+				processSystemFrameBGR(_image_ptr, linelen);
+			}
+		}
 	}
-
-	if (retryCount == maxRetries) {
-		Error(_log, "No se pudo capturar después de %d intentos", maxRetries);
-	}*/
-
-
-	// Procesar el frame capturado
-	//processSystemFrameBGR(static_cast<uint8_t*>(_image_ptr), linelen);
+	return true;
 }
 
 bool FrameBufGrabber::initAmlogic()

@@ -77,7 +77,8 @@ private:
 	int  _videoDev=-1;
 	
 	ImageAML<ColorBgr> _image_bgr;
-	void* _image_ptr;
+	//void* _image_ptr;
+	uint8_t* _image_ptr;
 	void* base;
 	//AMLssize_t      _bytesToRead;
 	ssize_t      _bytesToRead;
