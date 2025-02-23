@@ -420,7 +420,8 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				// ENODATA: // 61 - No data available
 				//uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
 				//processSystemFrameBGR(memHandle, linelen);
-				processSystemFrameBGR(_image_ptr, linelen);
+				//processSystemFrameBGR(_image_ptr, linelen);
+				return true;
 			}
 		}
 	}
