@@ -267,7 +267,7 @@ void FrameBufGrabber::grabFrame()
 						Info(_log, "Cambiamos a AML");
 						// Cambiar a Amlogic
 						//uninit(); // Detener el framebuffer
-						initAmlogic(); // Inicializar amvideocap0
+						_usingAmlogic = initAmlogic(); // Inicializar amvideocap0
 					}
 					else {
 						Info(_log, "Cambiamos a FB");
@@ -280,7 +280,7 @@ void FrameBufGrabber::grabFrame()
 				// Capturar el frame según el dispositivo actual
 				if (_usingAmlogic) {
 					Info(_log, "Capturando AML");
-					//grabFrameAmlogic();
+					grabFrameAmlogic();
 				}
 				else {
 					Info(_log, "Capturando FB");
@@ -377,41 +377,87 @@ void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 	_cropBottom = cropBottom;
 }
 
+
+void FrameBufGrabber::grabFrameAmlogic()
+{
+	// Configurar y capturar desde amvideocap0
+	long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
+	long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
+	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
+	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
+
+	if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
+	{
+		Error(_log, "Failed to configure Amlogic capture device");
+		return;
+	}
+
+	int linelen = ((_width + 31) & ~31) * 3;
+	size_t _bytesToRead = linelen * _height;
+
+	/*ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+	if (bytesRead < 0)
+	{
+		Error(_log, "Failed to read frame from Amlogic device: %s", strerror(errno));
+		return;
+	}*/
+
+
+	int retryCount = 0;
+	const int maxRetries = 100;
+	const int interval_ms = 100; // 100 ms de espera entre intentos
+
+	while (retryCount < maxRetries) {
+		ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
+
+		if (bytesRead != -1) {
+			Info(_log, "Iteración %d: Captura exitosa", retryCount + 1);
+			break; // Sale del bucle si la lectura fue exitosa
+		}
+
+		Info(_log, "Retorno pread intento %d. Error [%d] - %s", retryCount + 1, errno, strerror(errno));
+		QThread::msleep(interval_ms); // Espera antes de reintentar
+		retryCount++;
+	}
+
+	if (retryCount == maxRetries) {
+		Error(_log, "No se pudo capturar después de %d intentos", maxRetries);
+	}
+
+
+	// Procesar el frame capturado
+	//processSystemFrameBGR(static_cast<uint8_t*>(_image_ptr), linelen);
+}
+
 bool FrameBufGrabber::initAmlogic()
 {
-	Info(_log, "Intentando iniciar AML...");
+	Info(_log, "Intentando iniciar AML...");	
 	try {
-		if (!_initialized) {
-			/*_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR);
-			if (_captureDev < 0) {
-				Error(_log, "Error al abrir el dispositivo de captura Amlogic: %s", strerror(errno));
-				return false;
-			}*/
-			int maxRetries = 100;
-			int retryCount = 0;
+		
+		/*_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR);
+		if (_captureDev < 0) {
+			Error(_log, "Error al abrir el dispositivo de captura Amlogic: %s", strerror(errno));
+			return false;
+		}*/
+		int maxRetries = 100;
+		int retryCount = 0;
 
-			while ((_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR)) < 0 && retryCount < maxRetries) {
-				Warning(_log, "Error al abrir el dispositivo de captura Amlogic: %s. Reintentando... (%d/%d)", strerror(errno), retryCount + 1, maxRetries);
-				QThread::usleep(100000); // Espera de 100ms antes de reintentar
-				retryCount++;
-			}
-
-			if (_captureDev < 0) return false;
-
-			_timer.setInterval(1000 / _fps);
-			_timer.start();
-
-			_initialized = true;
-			_usingAmlogic = true;
-			Info(_log, "Captura Amlogic iniciada exitosamente.");
-			return true;
+		while ((_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR)) < 0 && retryCount < maxRetries) {
+			Warning(_log, "Error al abrir el dispositivo de captura Amlogic: %s. Reintentando... (%d/%d)", strerror(errno), retryCount + 1, maxRetries);
+			QThread::usleep(100000); // Espera de 100ms antes de reintentar
+			retryCount++;
 		}
+
+		if (_captureDev < 0) return false;
+
+		Info(_log, "Captura Amlogic iniciada exitosamente.");
+		return true;
+		
 	}
 	catch (const std::exception& e) {
 		Error(_log, "Fallo al iniciar Amlogic: %s", e.what());
+		return false;
 	}
-	Error(_log, "Fallo al iniciar Amlogic.");
-	return false;
 }
 
 void FrameBufGrabber::stopAmlogic()

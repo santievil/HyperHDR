@@ -73,9 +73,9 @@ private:
 	bool isVideoPlayingAML();
 	void closeDeviceAML(int& fd);
 	bool openDeviceAML(int& fd, const char* dev);
-	int             _captureDev=-1;
-	int             _videoDev=-1;
-
+	int  _captureDev=-1;
+	int  _videoDev=-1;
+	
 	ImageAML<ColorBgr> _image_bgr;
 	void* _image_ptr;
 	void* base;
