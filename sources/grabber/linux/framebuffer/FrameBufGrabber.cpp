@@ -50,6 +50,18 @@
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
+//---- captura imagenes
+#include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <chrono>
+#include <vector>
+#include <filesystem>
+
+#define MAX_IMAGES 10
+
+
+
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
@@ -66,7 +78,15 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
 
 	getDevices();
-	_lastErrorAML = 0;
+	//_lastErrorAML = 0;
+
+
+	static std::time_t lastCaptureTime = 0;
+	static std::vector<std::string> savedImages;
+	std::time_t currentTime = std::time(nullptr);
+	lastCaptureTime = currentTime;
+
+
 }
 
 QString FrameBufGrabber::GetSharedLut()
@@ -421,6 +441,38 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				//uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
 				//processSystemFrameBGR(memHandle, linelen);
 				//processSystemFrameBGR(_image_ptr, linelen);
+
+				//return true;
+
+
+				if ((currentTime - lastCaptureTime < 5) && savedImages.size() >= MAX_IMAGES))
+				{
+					return true;
+				}
+				lastCaptureTime = currentTime;
+
+				std::tm tm = *std::localtime(&currentTime);
+				std::ostringstream filename;
+				filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
+
+				/*if (savedImages.size() >= MAX_IMAGES)
+				{
+					std::filesystem::remove(savedImages.front());
+					savedImages.erase(savedImages.begin());
+				}*/
+
+				std::ofstream outFile(filename.str(), std::ios::binary);
+				if (outFile.is_open())
+				{
+					outFile.write(reinterpret_cast<char*>(_image_ptr), bytesRead);
+					outFile.close();
+					savedImages.push_back(filename.str());					
+					Info(_log, "Saved captured frame to %s", filename.str().c_str());
+				}
+				else
+				{
+					Error(_log, "Failed to open file %s for writing", filename.str().c_str());
+				}
 				return true;
 			}
 		}

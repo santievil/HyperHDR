@@ -83,6 +83,11 @@ private:
 	//AMLssize_t      _bytesToRead;
 	ssize_t      _bytesToRead;
 
+
+	static std::vector<std::string> savedImages;
+	std::time_t currentTime;
+	time_t lastCaptureTime = 0;
+
 	int             _lastErrorAML;
 	bool            _videoPlaying;
 	bool _usingAmlogic = false; // Indica si estamos usando Amlogic
