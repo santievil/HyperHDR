@@ -89,6 +89,9 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	//For files generation
 	currentTime = std::time(nullptr);
 	lastCaptureTime = currentTime;
+
+	bool messageShown = false;
+	bool messageShown2 = false;
 }
 
 QString FrameBufGrabber::GetSharedLut()
@@ -276,8 +279,7 @@ void FrameBufGrabber::stop()
 void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
-	bool checkAML = false;
-
+	
 	// Aseguramos que solo haya un hilo ejecutando la captura
 	if (_semaphore.tryAcquire()) {
 		try {
@@ -294,20 +296,27 @@ void FrameBufGrabber::grabFrame()
 						_usingAmlogic = initAmlogic(); // Inicializar amvideocap0
 					}
 					else {
-						Info(_log, "Change to FB");
+						Info(_log, "Change to FB");						
 						// Cambiar a framebuffer
 						_usingAmlogic = !stopAmlogic(); // Detener amvideocap0. Si tiene exito, devuelve true, asi que lo negamos.
 						//start(); // Reiniciar el framebuffer
 					}
+					messageShown = false;
 				}
 
 				// Capturar el frame según el dispositivo actual
 				if (_usingAmlogic) {
-					if (!checkAML)	Info(_log, "Grabbing AML. checkAML = %d", checkAML);
-					checkAML = grabFrameAmlogic();
+					if (!messageShown) {
+						Info(_log, "Grabbing AML");
+						messageShown = true;
+					}
+					grabFrameAmlogic();
 				}
 				else {
-					Info(_log, "Grabbing FB");
+					if (!messageShown) {
+						Info(_log, "Grabbing FB");
+						messageShown = true;
+					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow) {
 						uninit();
@@ -420,15 +429,19 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
-		if (_width * _height == 0) {
+		//if (_width * _height == 0) {
+		if (_width == 1088){
 			_bytesToRead = 1920 * 1088 * 3;
 			base = malloc(1920 * 1088 * 3);
-			_width = _height = 0;
+			//_width = _height = 0;
 		}
 		else {
 			base = malloc(_bytesToRead);
-			Info(_log, "Calculated linelen: %d", linelen);
-			Info(_log, "Calculated _bytesToRead: %zu", _bytesToRead);
+			if (!messageShown2) {
+				Info(_log, "Calculated linelen: %d", linelen);
+				Info(_log, "Calculated _bytesToRead: %zu", _bytesToRead);
+				messageShown2 = true;
+			}
 		}
 		if (!base) {
 			printf("Malloc _bytesToRead %zu failed\n", _bytesToRead);
@@ -439,7 +452,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		// Read the snapshot into the memory
 		//ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
 
-		Info(_log, "Successfully set capture frame size to: %dx%d", _width, _height);
+		//Info(_log, "Successfully set capture frame size to: %dx%d", _width, _height);
 
 
 		ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);

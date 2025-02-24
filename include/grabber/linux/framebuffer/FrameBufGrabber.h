@@ -90,6 +90,8 @@ private:
 	static std::vector<std::string> savedImages;
 	static std::time_t lastCaptureTime;
 	std::time_t currentTime;
+	bool messageShown = false;
+	bool messageShown2 = false;
 
 	int             _lastErrorAML;
 	bool            _videoPlaying;
