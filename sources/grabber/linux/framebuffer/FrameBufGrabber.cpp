@@ -454,7 +454,8 @@ bool FrameBufGrabber::grabFrameAmlogic()
 
 				std::tm tm = *std::localtime(&currentTime);
 				std::ostringstream filename;
-				filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
+				//filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
+				filename << "/storage/.kodi/temp/capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
 
 				/*if (savedImages.size() >= MAX_IMAGES)
 				{
