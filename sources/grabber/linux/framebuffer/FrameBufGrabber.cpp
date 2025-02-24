@@ -429,20 +429,19 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
-		//if (_width * _height == 0) {
-		if (_width == 1088){
+		/*if (_width * _height == 0) {
 			_bytesToRead = 1920 * 1088 * 3;
 			base = malloc(1920 * 1088 * 3);
-			//_width = _height = 0;
+			_width = _height = 0;
+		}*/
+		//else {
+		base = malloc(_bytesToRead);
+		if (!messageShown2) {
+			Info(_log, "Calculated linelen: %d", linelen);
+			Info(_log, "Calculated _bytesToRead: %zu", _bytesToRead);
+			messageShown2 = true;
 		}
-		else {
-			base = malloc(_bytesToRead);
-			if (!messageShown2) {
-				Info(_log, "Calculated linelen: %d", linelen);
-				Info(_log, "Calculated _bytesToRead: %zu", _bytesToRead);
-				messageShown2 = true;
-			}
-		}
+		//}
 		if (!base) {
 			printf("Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
