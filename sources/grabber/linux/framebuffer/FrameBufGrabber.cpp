@@ -72,6 +72,9 @@ typedef LONG_PTR SSIZE_T, * PSSIZE_T;
 std::time_t FrameBufGrabber::lastCaptureTime = 0;
 std::vector<std::string> FrameBufGrabber::savedImages;
 
+char* buf;
+int bufsize;
+
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
@@ -418,9 +421,32 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
+		Info(_log, "Calculated linelen: %d", linelen);
+		Info(_log, "Calculated _bytesToRead: %zu", _bytesToRead);
+
 		// Read the snapshot into the memory
 		//ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
-		ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
+
+
+		if (_width * _height == 0) {
+			bufsize = 1920 * 1088 * 3;
+			base = malloc(1920 * 1088 * 3);
+			_width = _height = 0;
+
+		}
+		else {
+			bufsize = _width * _height * 3;
+			base = malloc(_width * _height * 3);
+		}
+		if (!base) {
+			printf("malloc bufsize %d failed\n", bufsize);
+			return false;
+		}
+
+
+		Info(_log, "Calculated bufsize: %d", bufsize);
+
+		ssize_t bytesRead = pread(_captureDev, base, bufsize, 0);
 
 		if (bytesRead < 0 && !EAGAIN && errno > 0)
 		{
@@ -467,7 +493,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 					std::ofstream outFile(filename.str(), std::ios::binary);
 					if (outFile.is_open())
 					{
-						outFile.write(reinterpret_cast<char*>(_image_ptr), bytesRead);
+						outFile.write(reinterpret_cast<char*>(base), bytesRead);
 						outFile.close();
 						savedImages.push_back(filename.str());
 						Info(_log, "Saved captured frame to %s", filename.str().c_str());
