@@ -68,6 +68,10 @@ const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 typedef int64_t LONG_PTR, * PLONG_PTR;
 typedef LONG_PTR SSIZE_T, * PSSIZE_T;
 
+
+std::time_t FrameBufGrabber::lastCaptureTime = 0;
+std::vector<std::string> FrameBufGrabber::savedImages;
+
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
@@ -80,10 +84,7 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	getDevices();
 	//_lastErrorAML = 0;
 
-
-	static std::time_t lastCaptureTime = 0;
-	static std::vector<std::string> savedImages;
-	std::time_t currentTime = std::time(nullptr);
+	currentTime = std::time(nullptr);
 	lastCaptureTime = currentTime;
 
 

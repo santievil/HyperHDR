@@ -84,9 +84,10 @@ private:
 	ssize_t      _bytesToRead;
 
 
+	
 	static std::vector<std::string> savedImages;
+	static std::time_t lastCaptureTime;
 	std::time_t currentTime;
-	time_t lastCaptureTime = 0;
 
 	int             _lastErrorAML;
 	bool            _videoPlaying;
