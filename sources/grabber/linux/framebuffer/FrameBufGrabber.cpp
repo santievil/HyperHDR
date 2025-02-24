@@ -465,39 +465,48 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				//processSystemFrameBGR(memHandle, linelen);
 				//processSystemFrameBGR(_image_ptr, linelen);
 
+				if (bytesRead > 0)
+				{
 
-				currentTime = std::time(nullptr);
-				if (!((currentTime - lastCaptureTime < 5) || (savedImages.size() >= MAX_IMAGES)))
-				{					
-					lastCaptureTime = currentTime;
-
-					std::tm tm = *std::localtime(&currentTime);
-					std::ostringstream filename;
-					//filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
-					filename << "/storage/.kodi/temp/capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
-
-					/*if (savedImages.size() >= MAX_IMAGES)
+					currentTime = std::time(nullptr);
+					if (!((currentTime - lastCaptureTime < 5) || (savedImages.size() >= MAX_IMAGES)))
 					{
-						std::filesystem::remove(savedImages.front());
-						savedImages.erase(savedImages.begin());
-					}*/
+						lastCaptureTime = currentTime;
 
-					std::ofstream outFile(filename.str(), std::ios::binary);
-					if (outFile.is_open())
-					{
-						outFile.write(reinterpret_cast<char*>(base), bytesRead);
-						outFile.close();
-						savedImages.push_back(filename.str());
-						Info(_log, "Saved captured frame to %s", filename.str().c_str());
+						std::tm tm = *std::localtime(&currentTime);
+						std::ostringstream filename;
+						//filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
+						filename << "/storage/.kodi/temp/capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
+
+						/*if (savedImages.size() >= MAX_IMAGES)
+						{
+							std::filesystem::remove(savedImages.front());
+							savedImages.erase(savedImages.begin());
+						}*/
+
+						std::ofstream outFile(filename.str(), std::ios::binary);
+						if (outFile.is_open())
+						{
+							outFile.write(reinterpret_cast<char*>(base), bytesRead);
+							outFile.close();
+							savedImages.push_back(filename.str());
+							Info(_log, "Saved captured frame to %s", filename.str().c_str());
+						}
+						else
+						{
+							Error(_log, "Failed to open file %s for writing", filename.str().c_str());
+						}
+
 					}
-					else
-					{
-						Error(_log, "Failed to open file %s for writing", filename.str().c_str());
-					}
-
+					processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
+					free(base);
+					return true;
 				}
-				processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
-				return true;
+				else
+				{
+					Error(_log, "Capture failed. bytesRead is %ld", bytesRead);
+					return false;
+				}
 			}
 		}
 	}
