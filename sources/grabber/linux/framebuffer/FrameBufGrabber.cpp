@@ -427,6 +427,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		// Read the snapshot into the memory
 		//ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
 
+		Info(_log, "Successfully set capture frame size to: %dx%d", _width, _height);
 
 		if (_width * _height == 0) {
 			bufsize = 1920 * 1088 * 3;
@@ -504,6 +505,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 					}
 
 				}
+				processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
 				return true;
 			}
 		}
