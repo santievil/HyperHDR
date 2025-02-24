@@ -445,7 +445,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				//return true;
 
 
-				if ((currentTime - lastCaptureTime < 5) && savedImages.size() >= MAX_IMAGES))
+				if ((currentTime - lastCaptureTime < 5) && (savedImages.size() >= MAX_IMAGES))
 				{
 					return true;
 				}
