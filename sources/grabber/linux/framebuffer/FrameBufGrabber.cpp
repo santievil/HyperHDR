@@ -142,7 +142,6 @@ bool FrameBufGrabber::init()
 
 		Info(_log, "*************************************************************************************************");
 		Info(_log, "Starting FrameBuffer grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
-		Info(_log, "Actual Width: %d, Actual Height: %d", _actualWidth, _actualHeight);
 		Info(_log, "*************************************************************************************************");
 
 		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
@@ -338,7 +337,6 @@ bool FrameBufGrabber::grabFrameFramebuffer()
 	{
 		_actualWidth = scr.xres;
 		_actualHeight = scr.yres;
-		Info(_log, "Actual Width 2: %d, Actual Height: %d", _actualWidth, _actualHeight);
 
 		if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
 		{
@@ -372,6 +370,7 @@ bool FrameBufGrabber::grabFrameFramebuffer()
 				return true;
 			}
 		}
+		return true;
 	}
 	else
 	{
@@ -423,7 +422,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		}
 		//}
 		if (!base) {
-			Error("Malloc _bytesToRead %zu failed\n", _bytesToRead);
+			Error(_log, "Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
 		}
 
