@@ -165,6 +165,7 @@ bool FrameBufGrabber::init()
 
 		Info(_log, "*************************************************************************************************");
 		Info(_log, "Starting FrameBuffer grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
+		Info(_log, "Actual Width: %d, Actual Height: %d", _actualWidth, _actualHeight);
 		Info(_log, "*************************************************************************************************");
 
 		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
@@ -360,6 +361,7 @@ bool FrameBufGrabber::grabFrameFramebuffer()
 	{
 		_actualWidth = scr.xres;
 		_actualHeight = scr.yres;
+		Info(_log, "Actual Width 2: %d, Actual Height: %d", _actualWidth, _actualHeight);
 
 		if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
 		{
@@ -425,7 +427,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	}
 	else
 	{
-
+		Info(_log, "Actual Width 3: %d, Actual Height: %d", _actualWidth, _actualHeight);
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
@@ -480,7 +482,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				if (bytesRead > 0)
 				{
 
-					currentTime = std::time(nullptr);
+					/*currentTime = std::time(nullptr);
 					if (!((currentTime - lastCaptureTime < 5) || (savedImages.size() >= MAX_IMAGES)))
 					{
 						lastCaptureTime = currentTime;
@@ -489,12 +491,6 @@ bool FrameBufGrabber::grabFrameAmlogic()
 						std::ostringstream filename;
 						//filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
 						filename << "/storage/.kodi/temp/capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
-
-						/*if (savedImages.size() >= MAX_IMAGES)
-						{
-							std::filesystem::remove(savedImages.front());
-							savedImages.erase(savedImages.begin());
-						}*/
 
 						std::ofstream outFile(filename.str(), std::ios::binary);
 						if (outFile.is_open())
@@ -509,7 +505,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 							Error(_log, "Failed to open file %s for writing", filename.str().c_str());
 						}
 
-					}
+					}*/
 					processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
 					free(base);
 					return true;
