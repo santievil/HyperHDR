@@ -76,25 +76,12 @@ private:
 	int  _captureDev=-1;
 	int  _videoDev=-1;
 	
-	ImageAML<ColorBgr> _image_bgr;
-	//void* _image_ptr;
-	uint8_t* _image_ptr;
-	char* buf;
-	int bufsize;
 	void* base;
-	//AMLssize_t      _bytesToRead;
-	ssize_t      _bytesToRead;
+	ssize_t _bytesToRead;
 
-
-	
-	static std::vector<std::string> savedImages;
-	static std::time_t lastCaptureTime;
-	std::time_t currentTime;
 	bool messageShown = false;
 	bool messageShown2 = false;
 
-	int             _lastErrorAML;
-	bool            _videoPlaying;
 	bool _usingAmlogic = false; // Indica si estamos usando Amlogic
 	bool initAmlogic();
 	bool stopAmlogic();

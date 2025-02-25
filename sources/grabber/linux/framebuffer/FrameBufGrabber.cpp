@@ -50,30 +50,11 @@
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
-//---- captura imagenes
-#include <ctime>
-#include <fstream>
-#include <iomanip>
-#include <chrono>
-#include <vector>
-#include <filesystem>
-
-#define MAX_IMAGES 10
-
-
-
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 typedef int64_t LONG_PTR, * PLONG_PTR;
 typedef LONG_PTR SSIZE_T, * PSSIZE_T;
-
-
-std::time_t FrameBufGrabber::lastCaptureTime = 0;
-std::vector<std::string> FrameBufGrabber::savedImages;
-
-char* buf;
-int bufsize;
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
@@ -85,10 +66,6 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
 
 	getDevices();
-
-	//For files generation
-	currentTime = std::time(nullptr);
-	lastCaptureTime = currentTime;
 
 	bool messageShown = false;
 	bool messageShown2 = false;
@@ -291,13 +268,13 @@ void FrameBufGrabber::grabFrame()
 				// Cambiar de dispositivo si es necesario
 				if (isVideoPlaying != _usingAmlogic) {
 					if (isVideoPlaying) {
-						if (!_usingAmlogic)	Info(_log, "Change to AML");
+						if (!_usingAmlogic)	Info(_log, "Change to Amlogic");
 						// Cambiar a Amlogic
 						//uninit(); // Detener el framebuffer
 						_usingAmlogic = initAmlogic(); // Inicializar amvideocap0
 					}
 					else {
-						Info(_log, "Change to FB");						
+						Info(_log, "Change to Framebuffer");						
 						// Cambiar a framebuffer
 						_usingAmlogic = !stopAmlogic(); // Detener amvideocap0. Si tiene exito, devuelve true, asi que lo negamos.
 						//start(); // Reiniciar el framebuffer
@@ -308,14 +285,14 @@ void FrameBufGrabber::grabFrame()
 				// Capturar el frame según el dispositivo actual
 				if (_usingAmlogic) {
 					if (!messageShown) {
-						Info(_log, "Grabbing AML");
+						Info(_log, "Grabbing Amlogioc");
 						messageShown = true;
 					}
 					grabFrameAmlogic();
 				}
 				else {
 					if (!messageShown) {
-						Info(_log, "Grabbing FB");
+						Info(_log, "Grabbing Framebuffer");
 						messageShown = true;
 					}
 					stopNow = grabFrameFramebuffer();
@@ -429,7 +406,6 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	{
 		_actualWidth = _width;
 		_actualHeight = _height;
-		Info(_log, "Actual Width 3: %d, Actual Height: %d", _actualWidth, _actualHeight);
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
@@ -447,16 +423,9 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		}
 		//}
 		if (!base) {
-			printf("Malloc _bytesToRead %zu failed\n", _bytesToRead);
+			Error("Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
 		}
-
-
-		// Read the snapshot into the memory
-		//ssize_t bytesRead = pread(_captureDev, _image_ptr, _bytesToRead, 0);
-
-		//Info(_log, "Successfully set capture frame size to: %dx%d", _width, _height);
-
 
 		ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
 
@@ -469,7 +438,6 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		{
 			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
 			{
-				// Read of snapshot failed
 				Error(_log, "Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
 				return false;
 			}
@@ -477,38 +445,11 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				//If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
 				// EAGAIN : // 11 - Resource temporarily unavailable
 				// ENODATA: // 61 - No data available
-				//uint8_t* memHandle = static_cast<uint8_t*>(mmap(nullptr, format.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _handle, 0));
-				//processSystemFrameBGR(memHandle, linelen);
-				//processSystemFrameBGR(_image_ptr, linelen);
 
-				if (bytesRead > 0)
-				{
-
-					/*currentTime = std::time(nullptr);
-					if (!((currentTime - lastCaptureTime < 5) || (savedImages.size() >= MAX_IMAGES)))
-					{
-						lastCaptureTime = currentTime;
-
-						std::tm tm = *std::localtime(&currentTime);
-						std::ostringstream filename;
-						//filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
-						filename << "/storage/.kodi/temp/capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
-
-						std::ofstream outFile(filename.str(), std::ios::binary);
-						if (outFile.is_open())
-						{
-							outFile.write(reinterpret_cast<char*>(base), bytesRead);
-							outFile.close();
-							savedImages.push_back(filename.str());
-							Info(_log, "Saved captured frame to %s", filename.str().c_str());
-						}
-						else
-						{
-							Error(_log, "Failed to open file %s for writing", filename.str().c_str());
-						}
-
-					}*/
-					processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
+				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
+				{					
+					//processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
+					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
 					free(base);
 					return true;
 				}
@@ -526,8 +467,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 bool FrameBufGrabber::initAmlogic()
 {
 	Info(_log, "Starting Amlogic capture device...");	
-	try {
-		
+	try {		
 		_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR);
 		if (_captureDev < 0) {
 			Error(_log, "Failed to open Amlogic capture device: %s", strerror(errno));
@@ -535,8 +475,7 @@ bool FrameBufGrabber::initAmlogic()
 		}
 
 		Info(_log, "Amlogic capture device opened.");
-		return true;
-		
+		return true;		
 	}
 	catch (const std::exception& e) {
 		Error(_log, "Failed to open Amlogic capture device: %s", e.what());
@@ -574,21 +513,19 @@ void FrameBufGrabber::closeDeviceAML(int& fd)
 
 bool FrameBufGrabber::openDeviceAML(int& fd, const char* dev)
 {
-	bool rc = true;
 	if (fd < 0)
 	{
 		fd = ::open(dev, O_RDWR);
 		if (fd < 0)
 		{
-			rc = false;
+			return false;
 		}
 	}
-	return rc;
+	return true;
 }
 
 bool FrameBufGrabber::isVideoPlayingAML()
 {
-	bool rc = false;
 	if (QFile::exists(DEFAULT_VIDEO_DEVICE))
 	{
 		int videoDisabled = 1;
@@ -608,11 +545,11 @@ bool FrameBufGrabber::isVideoPlayingAML()
 			{
 				if (videoDisabled == 0)
 				{
-					rc = true;
+					return true;
 				}
 			}
 		}
 
 	}
-	return rc;
+	return false;
 }
