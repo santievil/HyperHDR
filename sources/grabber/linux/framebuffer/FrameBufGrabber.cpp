@@ -427,6 +427,8 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	}
 	else
 	{
+		_actualWidth = _width;
+		_actualHeight = _height;
 		Info(_log, "Actual Width 3: %d, Actual Height: %d", _actualWidth, _actualHeight);
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
