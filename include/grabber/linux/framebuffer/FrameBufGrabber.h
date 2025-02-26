@@ -79,9 +79,8 @@ private:
 	void* base;
 	ssize_t _bytesToRead;
 
-	bool messageShown = false;
-	bool messageShown2 = false;
-
+	bool messageShow = false;
+	
 	bool _usingAmlogic = false; // Indica si estamos usando Amlogic
 	bool initAmlogic();
 	bool stopAmlogic();

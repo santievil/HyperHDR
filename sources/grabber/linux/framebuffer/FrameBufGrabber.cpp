@@ -67,8 +67,7 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 
 	getDevices();
 
-	bool messageShown = false;
-	bool messageShown2 = false;
+	bool messageShow = false;	
 }
 
 QString FrameBufGrabber::GetSharedLut()
@@ -293,7 +292,9 @@ void FrameBufGrabber::grabFrame()
 					if (!messageShown) {
 						Info(_log, "Grabbing Amlogic");
 						calculateRes();
-						Info(_log, "Resolución changed to %dx%d", _width, _height);
+						Info(_log, "Resolution changed to %dx%d", _width, _height);
+						Info(_log, "Calculated linelen: %d", ((_width + 31) & ~31) * 3;);
+						Info(_log, "Calculated _bytesToRead: %zu", ((_width + 31) & ~31) * 3 * _height);
 						messageShown = true;
 					}
 					grabFrameAmlogic();
@@ -417,19 +418,8 @@ bool FrameBufGrabber::grabFrameAmlogic()
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
-		/*if (_width * _height == 0) {
-			_bytesToRead = 1920 * 1088 * 3;
-			base = malloc(1920 * 1088 * 3);
-			_width = _height = 0;
-		}*/
-		//else {
 		base = malloc(_bytesToRead);
-		if (!messageShown2) {
-			Info(_log, "Calculated linelen: %d", linelen);
-			Info(_log, "Calculated _bytesToRead: %zu", _bytesToRead);
-			messageShown2 = true;
-		}
-		//}
+
 		if (!base) {
 			Error(_log, "Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
@@ -451,6 +441,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 			}
 			else {
 				//If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
+				//No image on pause... need save previous? Is it neccesary?
 				// EAGAIN : // 11 - Resource temporarily unavailable
 				// ENODATA: // 61 - No data available
 
