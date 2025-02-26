@@ -284,25 +284,25 @@ void FrameBufGrabber::grabFrame()
 						_usingAmlogic = !stopAmlogic(); // Detener amvideocap0. Si tiene exito, devuelve true, asi que lo negamos.
 						//start(); // Reiniciar el framebuffer
 					}
-					messageShown = false;
+					messageShow = false;
 				}
 
 				// Capturar el frame según el dispositivo actual
 				if (_usingAmlogic) {
-					if (!messageShown) {
+					if (!messageShow) {
 						Info(_log, "Grabbing Amlogic");
 						calculateRes();
 						Info(_log, "Resolution changed to %dx%d", _width, _height);
-						Info(_log, "Calculated linelen: %d", ((_width + 31) & ~31) * 3;);
+						Info(_log, "Calculated linelen: %d", ((_width + 31) & ~31) * 3);
 						Info(_log, "Calculated _bytesToRead: %zu", ((_width + 31) & ~31) * 3 * _height);
-						messageShown = true;
+						messageShow = true;
 					}
 					grabFrameAmlogic();
 				}
 				else {
-					if (!messageShown) {
+					if (!messageShow) {
 						Info(_log, "Grabbing Framebuffer");
-						messageShown = true;
+						messageShow = true;
 					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow) {
