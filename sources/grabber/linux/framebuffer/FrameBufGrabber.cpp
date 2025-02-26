@@ -253,6 +253,13 @@ void FrameBufGrabber::stop()
 	}
 }
 
+void FrameBufGrabber::calculateRes()
+{
+	_width = (_width + 15) & ~15;  // Searching standard resolution 16:9
+	_height = (_width * 9) / 16;
+}
+
+
 void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
@@ -284,7 +291,9 @@ void FrameBufGrabber::grabFrame()
 				// Capturar el frame según el dispositivo actual
 				if (_usingAmlogic) {
 					if (!messageShown) {
-						Info(_log, "Grabbing Amlogioc");
+						Info(_log, "Grabbing Amlogic");
+						calculateRes();
+						Info(_log, "Resolución changed to %dx%d", _width, _height);
 						messageShown = true;
 					}
 					grabFrameAmlogic();
