@@ -75,7 +75,7 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 
 	getDevices();
 
-	bool messageShow = false;
+	//bool messageShow = false;
 	currentTime = std::time(nullptr);
 	lastCaptureTime = currentTime;
 }
@@ -437,10 +437,6 @@ bool FrameBufGrabber::grabFrameAmlogic()
 
 		ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
 
-		if (EAGAIN){
-			Error(_log, "ERROR EAIGAIN");
-		}
-
 		if (bytesRead < 0 && !EAGAIN && errno > 0)
 		{
 			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));
@@ -500,7 +496,8 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				}
 				else
 				{
-					Error(_log, "Capture failed. bytesRead is %ld", bytesRead);
+					//Error(_log, "Capture failed. bytesRead is %ld", bytesRead);
+					Error(_log, "Capture failed. bytesRead is %ld, errno: %d (%s)", bytesRead, errno, strerror(errno));
 					free(base);
 					return false;
 				}
