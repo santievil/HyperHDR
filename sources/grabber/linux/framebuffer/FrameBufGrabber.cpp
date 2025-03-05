@@ -439,9 +439,14 @@ bool FrameBufGrabber::grabFrameAmlogic()
 
 		ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
 
+		if (EAGAIN){
+			Error(_log, "ERROR EAIGAIN");
+		}
+
 		if (bytesRead < 0 && !EAGAIN && errno > 0)
 		{
 			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));
+			free(base);
 			return false;
 		}
 		else
@@ -449,6 +454,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
 			{
 				Error(_log, "Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
+				free(base);
 				return false;
 			}
 			else {
@@ -460,7 +466,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
 				{
 
-					currentTime = std::time(nullptr);
+					/*currentTime = std::time(nullptr);
 					if ((currentTime - lastCaptureTime) > 8)
 					{						
 						lastCaptureTime = currentTime;
@@ -487,7 +493,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 							Error(_log, "Failed to open file %s for writing", filename.str().c_str());
 						}
 
-					}
+					}*/
 
 					//processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
 					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
@@ -497,11 +503,13 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				else
 				{
 					Error(_log, "Capture failed. bytesRead is %ld", bytesRead);
+					free(base);
 					return false;
 				}
 			}
 		}
 	}
+	free(base);
 	return true;
 }
 

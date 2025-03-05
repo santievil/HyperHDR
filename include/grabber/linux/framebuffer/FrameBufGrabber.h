@@ -22,11 +22,11 @@
 //AML
 
 #include <grabber/linux/amlogic/Amvideocap.h>
-#include <utils/ImageAML.h>
-//#if defined(_MSC_VER)
-//#include <BaseTsd.h>
-//typedef SSIZE_T ssize_t;
-//#endif
+//#include <utils/ImageAML.h>
+
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+
 
 class FrameBufGrabber : public Grabber
 {
