@@ -461,11 +461,8 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				{
 
 					currentTime = std::time(nullptr);
-					if (currentTime - lastCaptureTime < 5)
-					{
-						return true;
-					}
-					else {
+					if ((currentTime - lastCaptureTime) > 8)
+					{						
 						lastCaptureTime = currentTime;
 
 						// Calcular bytes por píxel
@@ -476,12 +473,6 @@ bool FrameBufGrabber::grabFrameAmlogic()
 						std::ostringstream filename;
 						//filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
 						filename << "/storage/.kodi/temp/capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
-
-						/*if (savedImages.size() >= MAX_IMAGES)
-						{
-							std::filesystem::remove(savedImages.front());
-							savedImages.erase(savedImages.begin());
-						}*/
 
 						std::ofstream outFile(filename.str(), std::ios::binary);
 						if (outFile.is_open())
@@ -497,8 +488,6 @@ bool FrameBufGrabber::grabFrameAmlogic()
 						}
 
 					}
-
-
 
 					//processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
 					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
