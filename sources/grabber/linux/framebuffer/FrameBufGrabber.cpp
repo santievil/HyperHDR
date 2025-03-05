@@ -62,8 +62,6 @@
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-typedef int64_t LONG_PTR, * PLONG_PTR;
-typedef LONG_PTR SSIZE_T, * PSSIZE_T;
 
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
