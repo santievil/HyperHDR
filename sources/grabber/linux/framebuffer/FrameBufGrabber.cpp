@@ -264,8 +264,10 @@ void FrameBufGrabber::stop()
 
 void FrameBufGrabber::calculateRes()
 {
-	_width = (_width + 15) & ~15;  // Searching standard resolution 16:9
-	_height = (_width * 9) / 16;
+	//_width = (_width + 15) & ~15;  // Searching standard resolution 16:9
+	//_height = (_width * 9) / 16;
+	_width = 1920;
+	_height = 1080;
 }
 
 
