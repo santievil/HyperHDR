@@ -21,8 +21,12 @@
 
 //AML
 
-#include "../sources/grabber/linux/amlogic/Amvideocap.h"
-#include <utils/ImageAML.h>
+#include <grabber/linux/amlogic/Amvideocap.h>
+//#include <utils/ImageAML.h>
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 class FrameBufGrabber : public Grabber
 {
@@ -81,6 +85,10 @@ private:
 	ssize_t _bytesToRead;
 
 	bool messageShow = false;
+	std::time_t currentTime;    // Tiempo actual
+	std::time_t lastCaptureTime;
+	std::vector<std::string> savedImages;
+	int _bytesPerPixel;
 
 	bool _usingAmlogic = false; // Indica si estamos usando Amlogic
 	bool initAmlogic();

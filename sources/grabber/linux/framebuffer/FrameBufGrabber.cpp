@@ -50,11 +50,21 @@
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
+ //---- captura imagenes
+#include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <chrono>
+#include <vector>
+#include <filesystem>
+
+
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 typedef int64_t LONG_PTR, * PLONG_PTR;
 typedef LONG_PTR SSIZE_T, * PSSIZE_T;
+
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
@@ -68,6 +78,8 @@ FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configura
 	getDevices();
 
 	bool messageShow = false;
+	currentTime = std::time(nullptr);
+	lastCaptureTime = currentTime;
 }
 
 QString FrameBufGrabber::GetSharedLut()
@@ -447,6 +459,47 @@ bool FrameBufGrabber::grabFrameAmlogic()
 
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
 				{
+
+					currentTime = std::time(nullptr);
+					if (currentTime - lastCaptureTime < 5)
+					{
+						return true;
+					}
+					else {
+						lastCaptureTime = currentTime;
+
+						// Calcular bytes por píxel
+						_bytesPerPixel = static_cast<int>(bytesRead / (_width * _height));
+						Debug(_log, "Detected bytes per pixel: %d", _bytesPerPixel);
+
+						std::tm tm = *std::localtime(&currentTime);
+						std::ostringstream filename;
+						//filename << "capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
+						filename << "/storage/.kodi/temp/capture_" << std::put_time(&tm, "%y%m%d%H%M%S") << ".rgb";
+
+						/*if (savedImages.size() >= MAX_IMAGES)
+						{
+							std::filesystem::remove(savedImages.front());
+							savedImages.erase(savedImages.begin());
+						}*/
+
+						std::ofstream outFile(filename.str(), std::ios::binary);
+						if (outFile.is_open())
+						{
+							outFile.write(reinterpret_cast<char*>(base), bytesRead);
+							outFile.close();
+							savedImages.push_back(filename.str());
+							Info(_log, "Saved captured frame to %s", filename.str().c_str());
+						}
+						else
+						{
+							Error(_log, "Failed to open file %s for writing", filename.str().c_str());
+						}
+
+					}
+
+
+
 					//processSystemFrameBGR(static_cast<uint8_t*>(base), bufsize);
 					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
 					free(base);
