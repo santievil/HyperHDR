@@ -24,9 +24,9 @@
 #include <grabber/linux/amlogic/Amvideocap.h>
 //#include <utils/ImageAML.h>
 
-typedef int64_t LONG_PTR, * PLONG_PTR;
+/*typedef int64_t LONG_PTR, * PLONG_PTR;
 typedef LONG_PTR SSIZE_T, * PSSIZE_T;
-typedef SSIZE_T ssize_t;
+typedef SSIZE_T ssize_t;*/
 
 
 class FrameBufGrabber : public Grabber
