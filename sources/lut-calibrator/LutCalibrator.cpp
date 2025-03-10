@@ -445,11 +445,15 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	}
 
 	auto pixelFormat = image.getOriginFormat();
-	
 	if (pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::MJPEG && pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::P010)
 	{
 		//error("Only NV12/MJPEG/YUYV/P010 video format for the USB grabber and NV12 for the flatbuffers source are supported for the LUT calibration.");
-		error("Unsupported pixel format: %d. Only NV12/MJPEG/YUYV/P010 video format for the USB grabber and NV12 for the flatbuffers source are supported for the LUT calibration.", pixelFormat);
+
+		error(QString("Unsupported pixel format: %1. Only NV12/MJPEG/YUYV/P010 video format for the USB grabber and NV12 for the flatbuffers source are supported for the LUT calibration.")
+			.arg(pixelFormatToString(pixelFormat)));
+
+
+
 		return;
 	}
 	else if (pixelFormat == PixelFormat::P010)
