@@ -264,10 +264,10 @@ void FrameBufGrabber::stop()
 
 void FrameBufGrabber::calculateRes()
 {
-	//_width = (_width + 15) & ~15;  // Searching standard resolution 16:9
-	//_height = (_width * 9) / 16;
-	_width = 1920;
-	_height = 1080;
+	_width = (_width + 15) & ~15;  // Searching standard resolution 16:9
+	_height = (_width * 9) / 16;
+	//_width = 1920;
+	//_height = 1080;
 }
 
 
@@ -499,7 +499,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				else
 				{
 					//Error(_log, "Capture failed. bytesRead is %ld", bytesRead);
-					Error(_log, "Capture failed. bytesRead is %ld, errno: %d (%s)", bytesRead, errno, strerror(errno));
+					Warning(_log, "Capture failed. bytesRead is %ld, errno: %d (%s)", bytesRead, errno, strerror(errno));
 					free(base);
 					return false;
 				}
