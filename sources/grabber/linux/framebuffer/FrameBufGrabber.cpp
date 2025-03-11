@@ -414,6 +414,9 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
 	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
+	unsigned int frame_format;
+	long r5 = ioctl(_captureDev, AMVIDEOCAP_IOR_GET_FRAME_FORMAT, &frame_format);
+
 	if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
 	{
 		Error(_log, "Failed to configure Amlogic capture device");
@@ -457,7 +460,9 @@ bool FrameBufGrabber::grabFrameAmlogic()
 
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
 				{
-					
+					if (r5 > 0) {
+						Warning(_log, "Formato de frame: 0x%x\n", frame_format);
+					}
 					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
 					free(base);
 					return true;
