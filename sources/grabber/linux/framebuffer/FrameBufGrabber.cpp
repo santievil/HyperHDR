@@ -414,10 +414,10 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
 	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
-	unsigned int frame_format;
-	unsigned int scframe_format;
-	long r5 = ioctl(_captureDev, AMVIDEOCAP_IOR_GET_FRAME_FORMAT, &frame_format);
-	long r6 = ioctl(_captureDev, AMVIDEOCAP_IOR_GET_SRCFRAME_FORMAT, &scframe_format);
+	int frame_format;
+	int scframe_format;
+	long r5 = ioctl(_captureDev, AMVIDEOCAP_IOR_GET_FRAME_FORMAT, frame_format);
+	long r6 = ioctl(_captureDev, AMVIDEOCAP_IOR_GET_SRCFRAME_FORMAT, scframe_format);
 
 	if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
 	{
