@@ -315,7 +315,7 @@ void FrameBufGrabber::grabFrame()
 					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow) {
-						uninit();
+						uninit(); 
 					}
 				}
 			}
