@@ -465,8 +465,14 @@ bool FrameBufGrabber::grabFrameAmlogic()
 					if (r5 > 0) {
 						Warning(_log, "Formato de frame: 0x%x\n", frame_format);
 					}
+					else {
+						Warning(_log, "Error al obtener el formato de frame\n");
+					}
 					if (r6 > 0) {
 						Warning(_log, "Formato de scframe: 0x%x\n", scframe_format);
+					}
+					else {
+						Warning(_log, "Error al obtener el formato de scframe\n");
 					}
 					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
 					free(base);
