@@ -63,6 +63,7 @@ const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 
+
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
@@ -260,7 +261,8 @@ void FrameBufGrabber::stop()
 void FrameBufGrabber::calculateRes()
 {
 	_width = (_width + 15) & ~15;  // Searching standard resolution 16:9
-	_height = (_width * 9) / 16;
+	_height = (_width * 9) / 16;	
+
 	//_width = 1920;
 	//_height = 1080;
 }
