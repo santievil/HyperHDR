@@ -63,7 +63,6 @@ const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 
-
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
@@ -414,10 +413,8 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
 	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
-	int frame_format;
-	int scframe_format;
-	long r5 = ioctl(_captureDev, AMVIDEOCAP_IOR_GET_FRAME_FORMAT, &frame_format);
-	long r6 = ioctl(_captureDev, AMVIDEOCAP_IOR_GET_SRCFRAME_FORMAT, &scframe_format);
+
+
 
 	if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
 	{
@@ -461,19 +458,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				// ENODATA: // 61 - No data available
 
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
-				{
-					if (r5 > 0) {
-						Warning(_log, "Formato de frame: 0x%x\n", frame_format);
-					}
-					else {
-						Warning(_log, "Error al obtener el formato de frame\n");
-					}
-					if (r6 > 0) {
-						Warning(_log, "Formato de scframe: 0x%x\n", scframe_format);
-					}
-					else {
-						Warning(_log, "Error al obtener el formato de scframe\n");
-					}
+				{					
 					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
 					free(base);
 					return true;
