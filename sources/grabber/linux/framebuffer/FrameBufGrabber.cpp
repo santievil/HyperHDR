@@ -62,6 +62,8 @@
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
+uint8_t* lastValidFrame = nullptr;
+size_t lastFrameSize = 0;
 
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
@@ -461,6 +463,16 @@ bool FrameBufGrabber::grabFrameAmlogic()
 
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
 				{
+					//Save last valid frame (pause)
+					if (lastValidFrame) {
+						free(lastValidFrame);
+					}
+					lastValidFrame = static_cast<uint8_t*>(malloc(_bytesToRead));
+					if (lastValidFrame) {
+						memcpy(lastValidFrame, base, _bytesToRead);
+						lastFrameSize = _bytesToRead;
+					}
+
 					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
 					free(base);
 					return true;
@@ -468,7 +480,15 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				else
 				{
 					//Error(_log, "Capture failed. bytesRead is %ld", bytesRead);
-					Warning(_log, "Capture failed. bytesRead is %ld, errno: %d (%s)", bytesRead, errno, strerror(errno));
+					//Warning(_log, "Capture failed. bytesRead is %ld, errno: %d (%s)", bytesRead, errno, strerror(errno));
+
+					if (lastValidFrame && lastFrameSize > 0)
+					{
+						// Si no hay nueva imagen, reutilizar la última válida
+						processSystemFrameBGR(lastValidFrame, linelen);
+						return true;
+					}
+
 					free(base);
 					return false;
 				}
