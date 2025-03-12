@@ -50,15 +50,6 @@
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
- //---- captura imagenes
-#include <ctime>
-#include <fstream>
-#include <iomanip>
-#include <chrono>
-#include <vector>
-#include <filesystem>
-
-
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
@@ -269,7 +260,7 @@ void FrameBufGrabber::stop()
 	}
 }
 
-void FrameBufGrabber::calculateRes()
+/*void FrameBufGrabber::calculateRes()
 {
 	_width = (_width + 15) & ~15;  // Searching standard resolution 16:9
 	_height = (_width * 9) / 16;
@@ -277,48 +268,42 @@ void FrameBufGrabber::calculateRes()
 	//_width = 1920;
 	//_height = 1080;
 }
-
+*/
 
 void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
 
-	// Aseguramos que solo haya un hilo ejecutando la captura
 	if (_semaphore.tryAcquire()) {
 		try {
-			if (_initialized) {
-				// Verificar si hay video en Amlogic
+			if (_initialized) {				
 				bool isVideoPlaying = isVideoPlayingAML();
 
-				// Cambiar de dispositivo si es necesario
+				// Change capture device when needed
 				if (isVideoPlaying != _usingAmlogic) {
 					if (isVideoPlaying) {
-						if (!_usingAmlogic)	Info(_log, "Change to Amlogic");
-						// Cambiar a Amlogic
-						//uninit(); // Detener el framebuffer
-						_usingAmlogic = initAmlogic(); // Inicializar amvideocap0
+						if (!_usingAmlogic)	Info(_log, "Change to Amlogic");						
+						_usingAmlogic = initAmlogic();
 					}
 					else {
 						Info(_log, "Change to Framebuffer");
-						// Cambiar a framebuffer
 						if (lastValidFrame) {
 							free(lastValidFrame);
 						}
 						if (base) {
 							free(base);
 						}
-						_usingAmlogic = !stopAmlogic(); // Detener amvideocap0. Si tiene exito, devuelve true, asi que lo negamos.
-						//start(); // Reiniciar el framebuffer
+						_usingAmlogic = !stopAmlogic();
 					}
 					messageShow = false;
 				}
 
-				// Capturar el frame según el dispositivo actual
+				// Capture framel
 				if (_usingAmlogic) {
 					if (!messageShow) {
 						Info(_log, "Grabbing Amlogic");
-						calculateRes();
-						Info(_log, "Resolution changed to %dx%d", _width, _height);
+						//calculateRes();
+						//Info(_log, "Resolution changed to %dx%d", _width, _height);
 						//Info(_log, "Calculated linelen: %d", ((_width + 31) & ~31) * 3);
 						//Info(_log, "Calculated _bytesToRead: %zu", ((_width + 31) & ~31) * 3 * _height);
 						messageShow = true;
@@ -338,10 +323,9 @@ void FrameBufGrabber::grabFrame()
 			}
 		}
 		catch (const std::exception& e) {
-			Error(_log, "Error al capturar el frame: %s", e.what());
+			Error(_log, "Error capturing frame: %s", e.what());
 		}
 
-		// Liberamos el semáforo para permitir la captura en el siguiente ciclo
 		_semaphore.release();
 
 	}
@@ -432,9 +416,6 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
 	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
-
-
-
 	if (r1 < 0 || r2 < 0 || r3 < 0 || r4 < 0 || _height == 0 || _width == 0)
 	{
 		Error(_log, "Failed to configure Amlogic capture device");
@@ -471,14 +452,9 @@ bool FrameBufGrabber::grabFrameAmlogic()
 				return false;
 			}
 			else {
-				//If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
-				//No image on pause... need save previous? Is it neccesary?
-				// EAGAIN : // 11 - Resource temporarily unavailable
-				// ENODATA: // 61 - No data available
-
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
 				{
-					//Save last valid frame (pause)
+					//Save last valid frame (pause video)
 					if (lastValidFrame) {
 						free(lastValidFrame);
 					}
@@ -493,13 +469,9 @@ bool FrameBufGrabber::grabFrameAmlogic()
 					return true;
 				}
 				else
-				{
-					//Error(_log, "Capture failed. bytesRead is %ld", bytesRead);
-					//Warning(_log, "Capture failed. bytesRead is %ld, errno: %d (%s)", bytesRead, errno, strerror(errno));
-
+				{					
 					if (lastValidFrame && lastFrameSize > 0)
-					{
-						// Si no hay nueva imagen, reutilizar la última válida
+					{					
 						processSystemFrameBGR(lastValidFrame, linelen);
 						return true;
 					}
