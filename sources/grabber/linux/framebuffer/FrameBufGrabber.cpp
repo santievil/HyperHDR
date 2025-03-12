@@ -65,6 +65,15 @@ const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 uint8_t* lastValidFrame = nullptr;
 size_t lastFrameSize = 0;
 
+int  _captureDev = -1;
+int  _videoDev = -1;
+
+void* base;
+ssize_t _bytesToRead;
+
+bool messageShow = false;
+bool _usingAmlogic = false;
+
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
@@ -292,6 +301,12 @@ void FrameBufGrabber::grabFrame()
 					else {
 						Info(_log, "Change to Framebuffer");
 						// Cambiar a framebuffer
+						if (lastValidFrame) {
+							free(lastValidFrame);
+						}
+						if (base) {
+							free(base);
+						}
 						_usingAmlogic = !stopAmlogic(); // Detener amvideocap0. Si tiene exito, devuelve true, asi que lo negamos.
 						//start(); // Reiniciar el framebuffer
 					}
@@ -304,8 +319,8 @@ void FrameBufGrabber::grabFrame()
 						Info(_log, "Grabbing Amlogic");
 						calculateRes();
 						Info(_log, "Resolution changed to %dx%d", _width, _height);
-						Info(_log, "Calculated linelen: %d", ((_width + 31) & ~31) * 3);
-						Info(_log, "Calculated _bytesToRead: %zu", ((_width + 31) & ~31) * 3 * _height);
+						//Info(_log, "Calculated linelen: %d", ((_width + 31) & ~31) * 3);
+						//Info(_log, "Calculated _bytesToRead: %zu", ((_width + 31) & ~31) * 3 * _height);
 						messageShow = true;
 					}
 					grabFrameAmlogic();

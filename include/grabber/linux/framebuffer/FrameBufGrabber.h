@@ -74,14 +74,14 @@ private:
 	bool isVideoPlayingAML();
 	void closeDeviceAML(int& fd);
 	bool openDeviceAML(int& fd, const char* dev);
-	int  _captureDev = -1;
+	/*int  _captureDev = -1;
 	int  _videoDev = -1;
 
 	void* base;
 	ssize_t _bytesToRead;
 
 	bool messageShow = false;	
-	bool _usingAmlogic = false;
+	bool _usingAmlogic = false;*/
 	bool initAmlogic();
 	bool stopAmlogic();
 	bool grabFrameAmlogic();
