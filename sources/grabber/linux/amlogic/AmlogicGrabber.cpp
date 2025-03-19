@@ -56,16 +56,6 @@ namespace {
 	const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 	const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 	const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-	size_t lastFrameSize = 0;
-
-	int  _captureDev = -1;
-	int  _videoDev = -1;
-
-	MemoryBuffer<uint8_t> aml_frame;
-	MemoryBuffer<uint8_t> lastValidFrame;
-
-	bool messageShow = false;
-	bool _usingAmlogic = false;
 }
 
 
@@ -441,11 +431,7 @@ bool AmlogicGrabber::grabFrameAmlogic()
 			}
 			else {
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
-				{
-					//Save last valid frame (pause video)
-					/*if (lastValidFrame.size() > 0) {
-						lastValidFrame.releaseMemory();
-					}*/
+				{					
 					lastValidFrame.resize(_bytesToRead);
 					if (lastValidFrame.size() > 0) {
 						memcpy(lastValidFrame.data(), aml_frame.data(), _bytesToRead);
@@ -453,7 +439,6 @@ bool AmlogicGrabber::grabFrameAmlogic()
 					}
 
 					processSystemFrameBGR(static_cast<uint8_t*>(aml_frame.data()), linelen);
-					//aml_frame.releaseMemory();
 					return true;
 				}
 				else
@@ -463,14 +448,12 @@ bool AmlogicGrabber::grabFrameAmlogic()
 						processSystemFrameBGR(lastValidFrame.data(), linelen);
 						return true;
 					}
-
-					//aml_frame.releaseMemory();
+	
 					return false;
 				}
 			}
 		}
 	}
-	//aml_frame.releaseMemory();
 	return true;
 }
 
