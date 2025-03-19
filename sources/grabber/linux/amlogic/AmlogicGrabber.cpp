@@ -49,18 +49,20 @@
 #include <QCoreApplication>
 
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
+#include <image/MemoryBuffer.h>
+
 
 namespace {
 	const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 	const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 	const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-	uint8_t* lastValidFrame = nullptr;
 	size_t lastFrameSize = 0;
 
 	int  _captureDev = -1;
 	int  _videoDev = -1;
 
-	void* base;
+	MemoryBuffer<uint8_t> aml_frame;
+	MemoryBuffer<uint8_t> lastValidFrame;
 
 	bool messageShow = false;
 	bool _usingAmlogic = false;
@@ -277,11 +279,11 @@ void AmlogicGrabber::grabFrame()
 					}
 					else {
 						Info(_log, "Change to Framebuffer");
-						if (lastValidFrame) {
-							free(lastValidFrame);
+						if (lastValidFrame.size() > 0) {
+							lastValidFrame.releaseMemory();
 						}
-						if (base) {
-							free(base);
+						if (aml_frame.size() > 0) {
+							aml_frame.releaseMemory();
 						}
 						_usingAmlogic = !stopAmlogic();
 					}
@@ -414,19 +416,19 @@ bool AmlogicGrabber::grabFrameAmlogic()
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
-		base = malloc(_bytesToRead);
+		aml_frame.resize(_bytesToRead);
 
-		if (!base) {
+		if (aml_frame.size() == 0) {
 			Error(_log, "Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
 		}
 
-		ssize_t bytesRead = pread(_captureDev, base, _bytesToRead, 0);
+		ssize_t bytesRead = pread(_captureDev, aml_frame.data(), _bytesToRead, 0);
 
 		if (bytesRead < 0 && !EAGAIN && errno > 0)
 		{
-			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));
-			free(base);
+			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));			
+			aml_frame.releaseMemory();
 			return false;
 		}
 		else
@@ -434,41 +436,41 @@ bool AmlogicGrabber::grabFrameAmlogic()
 			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
 			{
 				Error(_log, "Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
-				free(base);
+				aml_frame.releaseMemory();
 				return false;
 			}
 			else {
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
 				{
 					//Save last valid frame (pause video)
-					if (lastValidFrame) {
-						free(lastValidFrame);
-					}
-					lastValidFrame = static_cast<uint8_t*>(malloc(_bytesToRead));
-					if (lastValidFrame) {
-						memcpy(lastValidFrame, base, _bytesToRead);
+					/*if (lastValidFrame.size() > 0) {
+						lastValidFrame.releaseMemory();
+					}*/
+					lastValidFrame.resize(_bytesToRead);
+					if (lastValidFrame.size() > 0) {
+						memcpy(lastValidFrame.data(), aml_frame.data(), _bytesToRead);
 						lastFrameSize = _bytesToRead;
 					}
 
-					processSystemFrameBGR(static_cast<uint8_t*>(base), linelen);
-					free(base);
+					processSystemFrameBGR(static_cast<uint8_t*>(aml_frame.data()), linelen);
+					//aml_frame.releaseMemory();
 					return true;
 				}
 				else
 				{					
-					if (lastValidFrame && lastFrameSize > 0)
+					if (lastValidFrame.size() > 0 && lastFrameSize > 0)
 					{					
-						processSystemFrameBGR(lastValidFrame, linelen);
+						processSystemFrameBGR(lastValidFrame.data(), linelen);
 						return true;
 					}
 
-					free(base);
+					//aml_frame.releaseMemory();
 					return false;
 				}
 			}
 		}
 	}
-	free(base);
+	//aml_frame.releaseMemory();
 	return true;
 }
 
