@@ -61,7 +61,8 @@ void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval
 		connect(_ledDevice.get(), &LedDevice::SignalEnableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
 
 		threadReadyPromisePtr->set_value();
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection | Qt::DirectConnection));
+//	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection | Qt::DirectConnection));
+	}, static_cast<Qt::ConnectionType>(Qt::DirectConnection));
 
 	threadReadyPromisePtr->get_future().get();
 }
