@@ -425,6 +425,8 @@ bool AmlogicGrabber::grabFrameAmlogic()
 	}
 	else
 	{
+		_width = 1920;
+		_height = 1080;
 		_actualWidth = _width;
 		_actualHeight = _height;
 		int linelen = ((_width + 31) & ~31) * 3;
