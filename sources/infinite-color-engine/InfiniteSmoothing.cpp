@@ -246,7 +246,7 @@ void InfiniteSmoothing::updateLeds()
 			if (_frameDelayBuffers.size() > _currentConfigId)
 				{
 					_frameDelayBuffers[_currentConfigId].clear();
-					_lastDelayFrames[_currentConfigId].clear();
+					_lastDelayFrames[_currentConfigId] = 0.0f;
 				}
 
 			return;
@@ -313,7 +313,7 @@ void InfiniteSmoothing::updateLeds()
 			if (_frameDelayBuffers.size() > _currentConfigId)
 				{
 					_frameDelayBuffers[_currentConfigId].clear();
-					_lastDelayFrames[_currentConfigId].clear();
+					_lastDelayFrames[_currentConfigId] = 0.0f;
 				}
 		}
 
@@ -325,7 +325,7 @@ void InfiniteSmoothing::updateLeds()
 		if (_frameDelayBuffers.size() > _currentConfigId)
 			{
 				_frameDelayBuffers[_currentConfigId].clear();
-				_lastDelayFrames[_currentConfigId].clear();
+				_lastDelayFrames[_currentConfigId] = 0.0f;
 			}
 	}
 }
