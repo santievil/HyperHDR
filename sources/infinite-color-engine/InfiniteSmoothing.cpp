@@ -184,7 +184,7 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 			.smoothingFactor = static_cast<float>(obj["smoothingFactor"].toDouble(0.1)),
 			.stiffness = static_cast<float>(obj["stiffness"].toDouble(200)),
 			.damping = static_cast<float>(obj["damping"].toDouble(26)),
-			.updateDelayFrames = static_cast<double>(obj["updateDelay"].toDouble(0.0))  // valor por defecto 0
+			.updateDelayFrames = static_cast<double>(obj["updateDelay"].toDouble(0.0)),  // valor por defecto 0
 			.y_limit = static_cast<float>(obj["y_limit"].toDouble())
 			}
 		);
@@ -271,7 +271,7 @@ void InfiniteSmoothing::updateLeds()
 		_frameCounters[_currentConfigId]++;
 		// log solo en el primer frame retrasado
 		if (_frameCounters[_currentConfigId] == 1 && _configurations[_currentConfigId]->updateDelayFrames > 0)
-			Info(_log, "Comenzando retraso de {:d} frames para config {:d}", _configurations[_currentConfigId]->updateDelayFrames, _currentConfigId);
+			Info(_log, "Comenzando retraso de {:f} frames para config {:d}", _configurations[_currentConfigId]->updateDelayFrames, _currentConfigId);
 
 		if (_frameCounters[_currentConfigId] <= _configurations[_currentConfigId]->updateDelayFrames)
     		return; // aún no llegamos al retraso
@@ -279,7 +279,7 @@ void InfiniteSmoothing::updateLeds()
 		_frameCounters[_currentConfigId] = 0;
 
 		_lastSentFrame = timeNow;
-		
+
 		// log del frame que se va a enviar
 		Info(_log, "Enviando frame para config {:d}", _currentConfigId);
 
