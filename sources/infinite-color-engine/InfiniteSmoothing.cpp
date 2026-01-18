@@ -268,27 +268,30 @@ void InfiniteSmoothing::updateLeds()
 
 	if (!nonlinearRgbColors->empty() && !finished)
 	{
-		// inicializamos el buffer y el valor previo si no existe
-		if (_frameDelayBuffers.size() <= _currentConfigId)
-		{
-    		_frameDelayBuffers.resize(_currentConfigId + 1);
-			_lastDelayFrames.resize(_currentConfigId + 1, 0.0f);
-		}
-
-		auto& buffer = _frameDelayBuffers[_currentConfigId];
+		
 		float currentDelay = _configurations[_currentConfigId]->updateDelayFrames;
 
-		// log si cambia el valor de delay respecto al anterior
-		if ((_lastDelayFrames[_currentConfigId] == 0.0f && currentDelay > 0.0f) ||
-			(_lastDelayFrames[_currentConfigId] != 0.0f && _lastDelayFrames[_currentConfigId] != currentDelay))
-		{
-			Info(_log, "Activando delay de {:d} frames para config {:d}", static_cast<int>(currentDelay), _currentConfigId);
-		}
-
-		_lastDelayFrames[_currentConfigId] = currentDelay;
-
+		// usamos buffer solo si delay > 0
 		if (currentDelay > 0.0f)
 		{
+			if (_frameDelayBuffers.size() <= _currentConfigId)
+			{
+				_frameDelayBuffers.resize(_currentConfigId + 1);
+				_lastDelayFrames.resize(_currentConfigId + 1, 0.0f);
+			}
+			auto& buffer = _frameDelayBuffers[_currentConfigId];
+			// log y reset del buffer si cambia el valor de delay
+			if (_lastDelayFrames[_currentConfigId] != currentDelay)
+			{
+				if (currentDelay > 0.0f)
+					Info(_log, "Activando delay de {:d} frames para config {:d}", static_cast<int>(currentDelay), _currentConfigId);
+				else
+					Info(_log, "DesActivando delay para config {:d}", _currentConfigId);
+
+				buffer.clear();
+				_lastDelayFrames[_currentConfigId] = currentDelay;
+			}
+
 			buffer.push_back(nonlinearRgbColors);
 
 			if (buffer.size() <= static_cast<size_t>(currentDelay))
@@ -297,22 +300,13 @@ void InfiniteSmoothing::updateLeds()
 			nonlinearRgbColors = std::move(buffer.front());
 			buffer.pop_front();
 		}
-		else
-		{
-			Info(_log, "DesActivando delay de {:d} frames para config {:d}", static_cast<int>(currentDelay), _currentConfigId);
-			buffer.clear();
-		}
 
 		_lastSentFrame = timeNow;
-
-		// log del frame que se va a enviar
 		Info(_log, "Enviando frame para config {:d}", _currentConfigId);
-
 		queueColors(std::move(nonlinearRgbColors));
 	}
 	else
 	{
-		// si no hay frames que enviar o smoothing detenido: limpiamos buffer de esta config
 		if (_frameDelayBuffers.size() > _currentConfigId)
 			_frameDelayBuffers[_currentConfigId].clear();
 	}

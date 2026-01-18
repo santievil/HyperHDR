@@ -97,5 +97,6 @@ private:
 	long long		_lastSentFrame;
 
 	std::vector<std::deque<SharedOutputColors>> _frameDelayBuffers;
+	std::vector<float> _lastDelayFrames;
 
 };
