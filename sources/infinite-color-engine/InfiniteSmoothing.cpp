@@ -285,6 +285,7 @@ void InfiniteSmoothing::updateLeds()
 				_frameDelayTimestamps.resize(_currentConfigId + 1);
 			}
 			auto& buffer = _frameDelayBuffers[_currentConfigId];
+			auto& timestamps = _frameDelayTimestamps[_currentConfigId];
 			// log y reset del buffer si cambia el valor de delay
 			if (_lastDelayFrames[_currentConfigId] != currentDelay)
 			{
@@ -299,11 +300,14 @@ void InfiniteSmoothing::updateLeds()
 
 				buffer.clear();
 				_lastDelayFrames[_currentConfigId] = currentDelay;
-				_frameDelayTimestamps[_currentConfigId].clear();
+				timestamps.clear();
 			}
 
-			long long entryTime = timeNow;
-			_frameDelayTimestamps[_currentConfigId].push_back(entryTime);
+			
+			 // Guardamos el timestamp solo para el primer frame de cada bloque de 'currentDelay' frames
+            if (buffer.size() % static_cast<size_t>(currentDelay) == 0)
+                timestamps.push_back(timeNow);
+
 			buffer.push_back(nonlinearRgbColors);
 
 			if (buffer.size() <= static_cast<size_t>(currentDelay))
@@ -311,15 +315,18 @@ void InfiniteSmoothing::updateLeds()
 
 			nonlinearRgbColors = std::move(buffer.front());
 
-			long long entryTs = _frameDelayTimestamps[_currentConfigId].front();
-			long long exitTime = InternalClock::now();
-			long long delayMs = exitTime - entryTs;
+			// Medimos el delay efectivo solo para 1 de cada 'currentDelay' frames
+            if (!timestamps.empty() && (buffer.size() % static_cast<size_t>(currentDelay) == 0))
+            {
+                long long entryTs = timestamps.front();
+                long long exitTime = InternalClock::now();
+                long long delayMs = exitTime - entryTs;
 
-			Info(_log,"Delay efectivo: {} ms ({} frames configurados)",delayMs,static_cast<int>(currentDelay));
+                Info(_log, "Delay efectivo: {} ms ({} frames configurados)", delayMs, static_cast<int>(currentDelay));
+                timestamps.pop_front();
+            }
 			
-
 			buffer.pop_front();
-			_frameDelayTimestamps[_currentConfigId].pop_front();
 		}
 
 		_lastSentFrame = timeNow;
