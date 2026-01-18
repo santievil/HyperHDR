@@ -56,7 +56,7 @@ int CoreInfiniteEngine::getSuggestedInterval()
 unsigned CoreInfiniteEngine::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, double ledUpdateDelay_fr, bool pause)
 {
 	//return _smoothing->addCustomSmoothingConfig(cfgID, settlingTime_ms, ledUpdateFrequency_hz, pause);
-	return _smoothing->addCustomSmoothingConfig(cfgID, settlingTime_ms, ledUpdateFrequency_hz, double ledUpdateDelay_fr, pause);
+	return _smoothing->addCustomSmoothingConfig(cfgID, settlingTime_ms, ledUpdateFrequency_hz, ledUpdateDelay_fr, pause);
 }
 
 void CoreInfiniteEngine::setCurrentSmoothingConfigParams(unsigned cfgID)
