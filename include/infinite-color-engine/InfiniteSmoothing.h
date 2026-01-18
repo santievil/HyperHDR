@@ -36,7 +36,8 @@ public:
 	bool isEnabled() const;
 
 	void incomingColors(std::vector<linalg::aliases::float3>&& nonlinearRgbColors);
-	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
+	//unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
+	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, double ledUpdateDelay_fr, bool pause);
 	void setCurrentSmoothingConfigParams(unsigned cfgID);
 	bool selectConfig(unsigned cfgId);
 	int getSuggestedInterval();
@@ -79,6 +80,7 @@ private:
 		float		  smoothingFactor;
 		float		  stiffness;
 		float		  damping;
+		float		  updateDelayFrames;
 		float		  y_limit;
 	};
 
@@ -92,4 +94,6 @@ private:
 	bool			_infoInput;
 	int				_coolDown;
 	long long		_lastSentFrame;
+
+	std::vector<int> _frameCounters;
 };

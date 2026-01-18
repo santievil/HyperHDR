@@ -184,15 +184,16 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 			.smoothingFactor = static_cast<float>(obj["smoothingFactor"].toDouble(0.1)),
 			.stiffness = static_cast<float>(obj["stiffness"].toDouble(200)),
 			.damping = static_cast<float>(obj["damping"].toDouble(26)),
+			.updateDelayFrames = static_cast<double>(obj["updateDelay"].toDouble(0.0))  // valor por defecto 0
 			.y_limit = static_cast<float>(obj["y_limit"].toDouble())
 			}
 		);
 
 		const auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
 		Info(_log, "Updating user config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz)"
-			       ", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+			       ", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, updateDelayFrames: {:f}, y_limit: {:f}",
 					SMOOTHING_USER_CONFIG, (EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
-					cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
+					cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->updateDelayFrames, cfg->y_limit
 			);
 
 		if (_currentConfigId == SMOOTHING_USER_CONFIG)
@@ -262,7 +263,26 @@ void InfiniteSmoothing::updateLeds()
 
 	if (!nonlinearRgbColors->empty() && !finished)
 	{
+		// inicializamos el contador si no existe
+		if (_frameCounters.size() <= _currentConfigId)
+			_frameCounters.resize(_currentConfigId + 1, 0);
+
+		// retraso por frames
+		_frameCounters[_currentConfigId]++;
+		// log solo en el primer frame retrasado
+		if (_frameCounters[_currentConfigId] == 1 && _configurations[_currentConfigId]->updateDelayFrames > 0)
+			Info(_log, "Comenzando retraso de {:d} frames para config {:d}", _configurations[_currentConfigId]->updateDelayFrames, _currentConfigId);
+
+		if (_frameCounters[_currentConfigId] <= _configurations[_currentConfigId]->updateDelayFrames)
+    		return; // aún no llegamos al retraso
+
+		_frameCounters[_currentConfigId] = 0;
+
 		_lastSentFrame = timeNow;
+		
+		// log del frame que se va a enviar
+		Info(_log, "Enviando frame para config {:d}", _currentConfigId);
+
 		queueColors(std::move(nonlinearRgbColors));
 	}
 }
@@ -305,7 +325,8 @@ unsigned InfiniteSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequ
 	return static_cast<unsigned>(_configurations.size() - 1);
 }
 
-unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
+//unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
+unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, double ledUpdateDelay_fr, bool pause)
 {
 	int64_t interval =  (ledUpdateFrequency_hz > std::numeric_limits<double>::epsilon()) ? static_cast<int64_t>(1000.0 / ledUpdateFrequency_hz) : 10;
 	
