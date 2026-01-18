@@ -311,9 +311,8 @@ void InfiniteSmoothing::updateLeds()
 
 			nonlinearRgbColors = std::move(buffer.front());
 
-
-			long long exitTime = InternalClock::now();
 			long long entryTs = _frameDelayTimestamps[_currentConfigId].front();
+			long long exitTime = InternalClock::now();
 			long long delayMs = exitTime - entryTs;
 
 			Info(_log,"Delay efectivo: {} ms ({} frames configurados)",delayMs,static_cast<int>(currentDelay));
