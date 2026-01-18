@@ -268,23 +268,30 @@ void InfiniteSmoothing::updateLeds()
 
 	if (!nonlinearRgbColors->empty() && !finished)
 	{
-		// inicializamos el contador si no existe
+		// inicializamos el buffer y el valor previo si no existe
 		if (_frameDelayBuffers.size() <= _currentConfigId)
+		{
     		_frameDelayBuffers.resize(_currentConfigId + 1);
+			_lastDelayFrames.resize(_currentConfigId + 1, 0.0f);
+		}
 
-		// retraso por frames
 		auto& buffer = _frameDelayBuffers[_currentConfigId];
-		const int delay = _configurations[_currentConfigId]->updateDelayFrames;
+		float currentDelay = _configurations[_currentConfigId]->updateDelayFrames;
 
-		if (delay > 0)
+		// log si cambia el valor de delay respecto al anterior
+		if ((_lastDelayFrames[_currentConfigId] == 0.0f && currentDelay > 0.0f) ||
+			(_lastDelayFrames[_currentConfigId] != 0.0f && _lastDelayFrames[_currentConfigId] != currentDelay))
+		{
+			Info(_log, "Activando delay de {:d} frames para config {:d}", static_cast<int>(currentDelay), _currentConfigId);
+		}
+
+		_lastDelayFrames[_currentConfigId] = currentDelay;
+
+		if (currentDelay > 0.0f)
 		{
 			buffer.push_back(nonlinearRgbColors);
 
-			// log cuando se activa el delay por primera vez
-			if (buffer.size() == 1)
-				Info(_log, "Activando delay de {:d} frames para config {:d}", delay, _currentConfigId);
-
-			if (buffer.size() <= static_cast<size_t>(delay))
+			if (buffer.size() <= static_cast<size_t>(currentDelay))
 				return;
 
 			nonlinearRgbColors = std::move(buffer.front());
@@ -292,13 +299,14 @@ void InfiniteSmoothing::updateLeds()
 		}
 		else
 		{
+			Info(_log, "DesActivando delay de {:d} frames para config {:d}", static_cast<int>(currentDelay), _currentConfigId);
 			buffer.clear();
 		}
 
 		_lastSentFrame = timeNow;
 
 		// log del frame que se va a enviar
-		//Info(_log, "Enviando frame para config {:d}", _currentConfigId);
+		Info(_log, "Enviando frame para config {:d}", _currentConfigId);
 
 		queueColors(std::move(nonlinearRgbColors));
 	}
@@ -398,13 +406,13 @@ bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 	const auto& cfg = _configurations[_currentConfigId];
 
 	Info(_log, "Selecting config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz). Smoothing is currently: {:s}"
-				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, updateDelayFrames: {:f}, y_limit: {:f}",
 		_currentConfigId, (EnumSmoothingTypeToString(cfg->type)), (!cfg->pause) ? "true" : "false",
 		int(cfg->settlingTime),
 		int(cfg->updateInterval),
 		int(1000.0 / cfg->updateInterval),
 		(_enabled) ? "enabled" : "disabled",
-		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
+		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->updateDelayFrames, cfg->y_limit);
 
 	return result;
 }
