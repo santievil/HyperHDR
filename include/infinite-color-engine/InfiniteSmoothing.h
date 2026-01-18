@@ -95,6 +95,6 @@ private:
 	int				_coolDown;
 	long long		_lastSentFrame;
 
-	std::vector<std::deque<std::vector<ColorRgb>>> _frameDelayBuffers;
+	std::vector<std::vector<SharedOutputColors>> _frameDelayBuffers;
 
 };

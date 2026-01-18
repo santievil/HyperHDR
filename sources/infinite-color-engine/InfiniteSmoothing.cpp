@@ -279,6 +279,11 @@ void InfiniteSmoothing::updateLeds()
 		if (delay > 0)
 		{
 			buffer.push_back(nonlinearRgbColors);
+
+			// log cuando se activa el delay por primera vez
+			if (buffer.size() == 1)
+				Info(_log, "Activando delay de {:d} frames para config {:d}", delay, _currentConfigId);
+
 			if (buffer.size() <= static_cast<size_t>(delay))
 				return;
 
