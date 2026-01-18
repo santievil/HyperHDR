@@ -22,6 +22,7 @@
 #include <infinite-color-engine/SharedOutputColors.h>
 #include <infinite-color-engine/InfiniteInterpolator.h>
 #include <utils/Logger.h>
+#include <deque> 
 
 class HyperHdrInstance;
 
@@ -95,6 +96,6 @@ private:
 	int				_coolDown;
 	long long		_lastSentFrame;
 
-	std::vector<std::vector<SharedOutputColors>> _frameDelayBuffers;
+	std::vector<std::deque<SharedOutputColors>> _frameDelayBuffers;
 
 };
