@@ -241,7 +241,12 @@ void InfiniteSmoothing::updateLeds()
 	{
 		QMutexLocker locker(&_dataSynchro);
 		if (!isEnabled())
+		{
+			// al deshabilitar smoothing limpiamos todos los buffers
+			for (auto& buf : _frameDelayBuffers)
+				buf.clear();
 			return;
+		}
 
 		timeNow = InternalClock::now();
 		_interpolator->updateCurrentColors(timeNow);
@@ -264,26 +269,39 @@ void InfiniteSmoothing::updateLeds()
 	if (!nonlinearRgbColors->empty() && !finished)
 	{
 		// inicializamos el contador si no existe
-		if (_frameCounters.size() <= _currentConfigId)
-			_frameCounters.resize(_currentConfigId + 1, 0);
+		if (_frameDelayBuffers.size() <= _currentConfigId)
+    		_frameDelayBuffers.resize(_currentConfigId + 1);
 
 		// retraso por frames
-		_frameCounters[_currentConfigId]++;
-		// log solo en el primer frame retrasado
-		if (_frameCounters[_currentConfigId] == 1 && _configurations[_currentConfigId]->updateDelayFrames > 0)
-			Info(_log, "Comenzando retraso de {:f} frames para config {:d}", _configurations[_currentConfigId]->updateDelayFrames, _currentConfigId);
+		auto& buffer = _frameDelayBuffers[_currentConfigId];
+		const int delay = _configurations[_currentConfigId]->updateDelayFrames;
 
-		if (_frameCounters[_currentConfigId] <= _configurations[_currentConfigId]->updateDelayFrames)
-    		return; // aún no llegamos al retraso
+		if (delay > 0)
+		{
+			buffer.push_back(nonlinearRgbColors);
+			if (buffer.size() <= static_cast<size_t>(delay))
+				return;
 
-		_frameCounters[_currentConfigId] = 0;
+			nonlinearRgbColors = std::move(buffer.front());
+			buffer.pop_front();
+		}
+		else
+		{
+			buffer.clear();
+		}
 
 		_lastSentFrame = timeNow;
 
 		// log del frame que se va a enviar
-		Info(_log, "Enviando frame para config {:d}", _currentConfigId);
+		//Info(_log, "Enviando frame para config {:d}", _currentConfigId);
 
 		queueColors(std::move(nonlinearRgbColors));
+	}
+	else
+	{
+		// si no hay frames que enviar o smoothing detenido: limpiamos buffer de esta config
+		if (_frameDelayBuffers.size() > _currentConfigId)
+			_frameDelayBuffers[_currentConfigId].clear();
 	}
 }
 
