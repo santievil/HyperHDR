@@ -242,12 +242,12 @@ void InfiniteSmoothing::updateLeds()
 		QMutexLocker locker(&_dataSynchro);
 		if (!isEnabled())
 		{
-			// al deshabilitar smoothing limpiamos todos los buffers
-			for (auto& buf : _frameDelayBuffers)
-				buf.clear();
-
-			if (_frameDelayTimestamps.size() > _currentConfigId)
-       			_frameDelayTimestamps[_currentConfigId].clear();
+			// Disable queues
+			if (_frameDelayBuffers.size() > _currentConfigId)
+				{
+					_frameDelayBuffers[_currentConfigId].clear();
+					_lastDelayFrames[_currentConfigId].clear();
+				}
 
 			return;
 		}
@@ -275,18 +275,16 @@ void InfiniteSmoothing::updateLeds()
 		
 		float currentDelay = _configurations[_currentConfigId]->updateDelayFrames;
 
-		// usamos buffer solo si delay > 0
+		// Only queue if delay
 		if (currentDelay > 0.0f)
 		{
 			if (_frameDelayBuffers.size() <= _currentConfigId)
 			{
 				_frameDelayBuffers.resize(_currentConfigId + 1);
 				_lastDelayFrames.resize(_currentConfigId + 1, 0.0f);
-				_frameDelayTimestamps.resize(_currentConfigId + 1);
 			}
 			auto& buffer = _frameDelayBuffers[_currentConfigId];
-			auto& timestamps = _frameDelayTimestamps[_currentConfigId];
-			// log y reset del buffer si cambia el valor de delay
+			// If change delay, reset queue
 			if (_lastDelayFrames[_currentConfigId] != currentDelay)
 			{
 				if (currentDelay > 0.0f){
@@ -296,17 +294,11 @@ void InfiniteSmoothing::updateLeds()
     				finished = false;
 				}
 				else
-					Info(_log, "DeActivando delay to config {:d}", _currentConfigId);
+					Info(_log, "DeActivating delay to config {:d}", _currentConfigId);
 
 				buffer.clear();
 				_lastDelayFrames[_currentConfigId] = currentDelay;
-				timestamps.clear();
 			}
-
-			
-			 // Guardamos el timestamp solo para el primer frame de cada bloque de 'currentDelay' frames
-            if (buffer.size() % static_cast<size_t>(currentDelay) == 0)
-                timestamps.push_back(timeNow);
 
 			buffer.push_back(nonlinearRgbColors);
 
@@ -314,29 +306,27 @@ void InfiniteSmoothing::updateLeds()
 				return;
 
 			nonlinearRgbColors = std::move(buffer.front());
-
-			// Medimos el delay efectivo solo para 1 de cada 'currentDelay' frames
-            if (!timestamps.empty() && (buffer.size() % static_cast<size_t>(currentDelay) == 0))
-            {
-                long long entryTs = timestamps.front();
-                long long exitTime = InternalClock::now();
-                long long delayMs = exitTime - entryTs;
-
-                Info(_log, "Delay efectivo: {} ms ({} frames configurados)", delayMs, static_cast<int>(currentDelay));
-                timestamps.pop_front();
-            }
-			
 			buffer.pop_front();
+		}
+		else
+		{
+			if (_frameDelayBuffers.size() > _currentConfigId)
+				{
+					_frameDelayBuffers[_currentConfigId].clear();
+					_lastDelayFrames[_currentConfigId].clear();
+				}
 		}
 
 		_lastSentFrame = timeNow;
-		//Info(_log, "Enviando frame para config {:d}", _currentConfigId);
 		queueColors(std::move(nonlinearRgbColors));
 	}
 	else
 	{
 		if (_frameDelayBuffers.size() > _currentConfigId)
-			_frameDelayBuffers[_currentConfigId].clear();
+			{
+				_frameDelayBuffers[_currentConfigId].clear();
+				_lastDelayFrames[_currentConfigId].clear();
+			}
 	}
 }
 
