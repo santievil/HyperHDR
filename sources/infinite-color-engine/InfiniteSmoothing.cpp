@@ -245,6 +245,10 @@ void InfiniteSmoothing::updateLeds()
 			// al deshabilitar smoothing limpiamos todos los buffers
 			for (auto& buf : _frameDelayBuffers)
 				buf.clear();
+
+			if (_frameDelayTimestamps.size() > _currentConfigId)
+       			_frameDelayTimestamps[_currentConfigId].clear();
+
 			return;
 		}
 
@@ -278,31 +282,49 @@ void InfiniteSmoothing::updateLeds()
 			{
 				_frameDelayBuffers.resize(_currentConfigId + 1);
 				_lastDelayFrames.resize(_currentConfigId + 1, 0.0f);
+				_frameDelayTimestamps.resize(_currentConfigId + 1);
 			}
 			auto& buffer = _frameDelayBuffers[_currentConfigId];
 			// log y reset del buffer si cambia el valor de delay
 			if (_lastDelayFrames[_currentConfigId] != currentDelay)
 			{
-				if (currentDelay > 0.0f)
-					Info(_log, "Activando delay de {:d} frames para config {:d}", static_cast<int>(currentDelay), _currentConfigId);
+				if (currentDelay > 0.0f){
+					Info(_log, "Activating delay of {:d} frames to config {:d}", static_cast<int>(currentDelay), _currentConfigId);
+					_lastSentFrame = 0;
+    				_coolDown = 0;
+    				finished = false;
+				}
 				else
-					Info(_log, "DesActivando delay para config {:d}", _currentConfigId);
+					Info(_log, "DeActivando delay to config {:d}", _currentConfigId);
 
 				buffer.clear();
 				_lastDelayFrames[_currentConfigId] = currentDelay;
+				_frameDelayTimestamps[_currentConfigId].clear();
 			}
 
+			long long entryTime = timeNow;
+			_frameDelayTimestamps[_currentConfigId].push_back(entryTime);
 			buffer.push_back(nonlinearRgbColors);
 
 			if (buffer.size() <= static_cast<size_t>(currentDelay))
 				return;
 
 			nonlinearRgbColors = std::move(buffer.front());
+
+
+			long long exitTime = InternalClock::now();
+			long long entryTs = _frameDelayTimestamps[_currentConfigId].front();
+			long long delayMs = exitTime - entryTs;
+
+			Info(_log,"Delay efectivo: {} ms ({} frames configurados)",delayMs,static_cast<int>(currentDelay));
+			
+
 			buffer.pop_front();
+			_frameDelayTimestamps[_currentConfigId].pop_front();
 		}
 
 		_lastSentFrame = timeNow;
-		Info(_log, "Enviando frame para config {:d}", _currentConfigId);
+		//Info(_log, "Enviando frame para config {:d}", _currentConfigId);
 		queueColors(std::move(nonlinearRgbColors));
 	}
 	else
