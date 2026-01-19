@@ -246,7 +246,6 @@ void InfiniteSmoothing::updateLeds()
 			if (_frameDelayBuffers.size() > _currentConfigId)
 				{
 					_frameDelayBuffers[_currentConfigId].clear();
-					_lastDelayFrames[_currentConfigId] = 0.0f;
 				}
 
 			return;
@@ -281,25 +280,8 @@ void InfiniteSmoothing::updateLeds()
 			if (_frameDelayBuffers.size() <= _currentConfigId)
 			{
 				_frameDelayBuffers.resize(_currentConfigId + 1);
-				_lastDelayFrames.resize(_currentConfigId + 1, 0.0f);
 			}
 			auto& buffer = _frameDelayBuffers[_currentConfigId];
-			// If change delay, reset queue
-			if (_lastDelayFrames[_currentConfigId] != currentDelay)
-			{
-				if (currentDelay > 0.0f){
-					Info(_log, "Activating delay of {:d} frames to config {:d}", static_cast<int>(currentDelay), _currentConfigId);
-					_lastSentFrame = 0;
-    				_coolDown = 0;
-    				finished = false;
-				}
-				else
-					Info(_log, "DeActivating delay to config {:d}", _currentConfigId);
-
-				buffer.clear();
-				_lastDelayFrames[_currentConfigId] = currentDelay;
-			}
-
 			buffer.push_back(nonlinearRgbColors);
 
 			if (buffer.size() <= static_cast<size_t>(currentDelay))
@@ -313,7 +295,6 @@ void InfiniteSmoothing::updateLeds()
 			if (_frameDelayBuffers.size() > _currentConfigId)
 				{
 					_frameDelayBuffers[_currentConfigId].clear();
-					_lastDelayFrames[_currentConfigId] = 0.0f;
 				}
 		}
 
@@ -325,7 +306,6 @@ void InfiniteSmoothing::updateLeds()
 		if (_frameDelayBuffers.size() > _currentConfigId)
 			{
 				_frameDelayBuffers[_currentConfigId].clear();
-				_lastDelayFrames[_currentConfigId] = 0.0f;
 			}
 	}
 }
