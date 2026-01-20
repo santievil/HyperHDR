@@ -107,7 +107,7 @@ QString AmlogicGrabber::GetSharedLut()
 	return ret;
 }
 
-void AmlogicGrabber::loadLutFile(PixelFormat color)
+void AmlogicGrabber::loadLutFile(PixelFormat color, bool silent)
 {
 	// load lut table
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
