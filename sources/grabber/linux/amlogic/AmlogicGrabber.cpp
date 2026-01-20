@@ -87,15 +87,51 @@ void AmlogicGrabber::resetVariables()
 
 QString AmlogicGrabber::GetSharedLut()
 {
-	return "";
+	char result[PATH_MAX];
+
+	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+	if (count < 0)
+	{
+		Debug(_log, "Readlink failed");
+		return "";
+	}
+
+	std::string appPath = std::string(result, (count > 0) ? count : 0);
+	std::size_t found = appPath.find_last_of("/\\");
+
+	QString   ret = QString("%1%2").arg(QString::fromStdString(appPath.substr(0, found))).arg("/../lut");
+	QFileInfo info(ret);
+
+	ret = info.absoluteFilePath();
+	Debug(_log, "LUT folder location: '{:s}'", (ret));
+	return ret;
 }
 
 void AmlogicGrabber::loadLutFile(PixelFormat color)
 {
+	// load lut table
+	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
+	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
+	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
+
+	Grabber::loadLutFile((!silent) ? _log : nullptr, color, QList<QString>{fileName1, fileName2, fileName3});
 }
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
+	if (_hdrToneMappingEnabled != mode || _lut.data() == nullptr)
+	{
+		_hdrToneMappingEnabled = mode;
+		if (_lut.data() != nullptr || !mode)
+			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+		else
+			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
+
+		loadLutFile(PixelFormat::RGB24);
+		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
+	}
+	else
+		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -425,8 +461,8 @@ bool AmlogicGrabber::grabFrameAmlogic()
 	}
 	else
 	{
-		_width = 1920;
-		_height = 1080;
+		//_width = 1920;
+		//_height = 1080;
 		_actualWidth = _width;
 		_actualHeight = _height;
 		int linelen = ((_width + 31) & ~31) * 3;
