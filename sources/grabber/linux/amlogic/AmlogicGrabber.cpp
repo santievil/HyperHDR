@@ -113,17 +113,21 @@ void AmlogicGrabber::loadLutFile(PixelFormat color, bool silent)
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
 	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
-
+	Info(_log, "Carga el lut");
 	Grabber::loadLutFile((!silent) ? _log : nullptr, color, QList<QString>{fileName1, fileName2, fileName3});
 }
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
+	Info(_log, "Activando tonemaping");
 	if (_hdrToneMappingEnabled != mode || _lut.data() == nullptr)
 	{
+		Info(_log, "Si entra primer if");
 		_hdrToneMappingEnabled = mode;
 		if (_lut.data() != nullptr || !mode)
 			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+			Info(_log, "Si entra segundo if");
+			Info(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
@@ -131,7 +135,10 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
+	{
+		Info(_log, "No entra primer if");
 		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+	}
 }
 
 AmlogicGrabber::~AmlogicGrabber()
