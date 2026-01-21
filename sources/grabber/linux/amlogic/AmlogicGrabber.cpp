@@ -162,7 +162,8 @@ void AmlogicGrabber::loadLutFile()
 
 	files.append(fileName4);
 #endif
-
+	Info(_log,"Adding user LUT file for searching: {}", _userLutFile.toStdString());
+	_userLutFile = "";
 	if (!_userLutFile.isEmpty())
 	{
 		#ifdef __linux__
