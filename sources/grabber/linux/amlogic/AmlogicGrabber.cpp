@@ -176,7 +176,8 @@ void AmlogicGrabber::loadLutFile()
 		files.prepend(userFile);
 		Info(_log, "Adding user LUT file otro for searching: {:s}", (userFile));
 	}else
-		Info(_log, "LUT encontrado {:s}",(_userLutFile));
+		Info(_log,"Adding user LUT file for searching: {}", _userLutFile.toStdString());
+		//Info(_log, "LUT encontrado {:s}",(_userLutFile));
 
 	LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
 }
@@ -524,6 +525,16 @@ bool AmlogicGrabber::grabFrameAmlogic()
 
 		_amlFrame.resize(_bytesToRead);
 
+		Info(
+			_log,
+			"Amlogic grab: width={} height={} linelen={} bytesToRead={}",
+			_width,
+			_height,
+			linelen,
+			_bytesToRead
+		);
+
+
 		if (_amlFrame.size() == 0) {
 			Error(_log, "Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
@@ -554,6 +565,28 @@ bool AmlogicGrabber::grabFrameAmlogic()
 						memcpy(_lastValidFrame.data(), _amlFrame.data(), _bytesToRead);
 					}
 
+					Debug(
+						_log,
+						"Apply LUT: frameSize={} expected={} strideWidth={} height={} lutSize={} hdrToneMapping={}",
+						_amlFrame.size(),
+						linelen * _height,
+						linelen / 3,
+						_height,
+						(_lut.data() != nullptr ? _lut.size() : 0),
+						getHdrToneMappingEnabled()
+					);
+
+
+					 // Aplicar LUT al frame completo (BGR888 con padding)
+					FrameDecoder::applyLUT(
+						static_cast<uint8_t*>(_amlFrame.data()),
+						linelen / 3,          // width REAL con padding
+						_height,
+						_lut.data(),
+						getHdrToneMappingEnabled()
+					);
+
+
 					processSystemFrameBGR(static_cast<uint8_t*>(_amlFrame.data()), linelen);
 					return true;
 				}
@@ -561,6 +594,15 @@ bool AmlogicGrabber::grabFrameAmlogic()
 				{					
 					if (_lastValidFrame.size() > 0)
 					{					
+						 // Aplicar LUT al frame completo (BGR888 con padding)
+						FrameDecoder::applyLUT(
+							static_cast<uint8_t*>(_amlFrame.data()),
+							linelen / 3,          // width REAL con padding
+							_height,
+							_lut.data(),
+							getHdrToneMappingEnabled()
+						);
+
 						processSystemFrameBGR(_lastValidFrame.data(), linelen);
 						return true;
 					}
