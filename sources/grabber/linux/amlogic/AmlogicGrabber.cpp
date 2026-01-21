@@ -155,6 +155,7 @@ void AmlogicGrabber::loadLutFile()
 	QString fileName2 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName3 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
 	QList<QString> files({ fileName1, fileName2, fileName3 });
+	Info(_log, "Buscando LUT");
 
 #ifdef __linux__
 	QString fileName4 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
@@ -167,13 +168,14 @@ void AmlogicGrabber::loadLutFile()
 		#ifdef __linux__
 			QString userFileBin = QString("%1/%2").arg(GetSharedLut()).arg(_userLutFile);
 			files.prepend(userFileBin);
-			Debug(_log, "Adding user LUT file for searching: {:s}", (userFileBin));
+			Info(_log, "Adding user LUT file linux for searching: {:s}", (userFileBin));
 		#endif
 
 		QString userFile = QString("%1/%2").arg(_configurationPath).arg(_userLutFile);
 		files.prepend(userFile);
-		Debug(_log, "Adding user LUT file for searching: {:s}", (userFile));
-	}
+		Info(_log, "Adding user LUT file otro for searching: {:s}", (userFile));
+	}else
+		Info(_log, "LUT encontrado {:s}",(_userLutFile));
 
 	LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
 }
