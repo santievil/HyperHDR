@@ -88,6 +88,7 @@ private:
 	int _videoDev;
 	bool _usingAmlogic;
 	bool _messageShow;
+	QString	_userLutFile = "";
 		
 private:
 	QString		_configurationPath;
