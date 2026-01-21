@@ -136,7 +136,6 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 }
 */
 
-
 QString AmlogicGrabber::GetSharedLut()
 {
 #ifdef __APPLE__
@@ -162,8 +161,7 @@ void AmlogicGrabber::loadLutFile()
 
 	files.append(fileName4);
 #endif
-	Info(_log,"Adding user LUT file for searching: {}", _userLutFile.toStdString());
-	_userLutFile = "";
+	
 	if (!_userLutFile.isEmpty())
 	{
 		#ifdef __linux__
@@ -175,15 +173,31 @@ void AmlogicGrabber::loadLutFile()
 		QString userFile = QString("%1/%2").arg(_configurationPath).arg(_userLutFile);
 		files.prepend(userFile);
 		Info(_log, "Adding user LUT file otro for searching: {:s}", (userFile));
-	}else
-		Info(_log,"Adding user LUT file for searching: {}", _userLutFile.toStdString());
-		//Info(_log, "LUT encontrado {:s}",(_userLutFile));
+	}
+	
+	Info(_log, "Rutas LUT {}", files.join(", ").toStdString());
 
 	LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
 }
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
+	if (_hdrToneMappingEnabled != mode)
+	{
+		_hdrToneMappingEnabled = mode;
+		if (!mode)
+		{
+			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+		}
+		else
+			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
+
+		loadLutFile();
+		//loadLutFile(PixelFormat::RGB24);
+		//emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
+	}
+	else
+		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -392,9 +406,8 @@ void AmlogicGrabber::grabFrame()
 					if (!_messageShow)
 					{
 						Info(_log, "Grabbing Amlogic");
-						_messageShow = true;
-						loadLutFile();
-						//setHdrToneMappingEnabled(1);
+						_messageShow = true;						
+						setHdrToneMappingEnabled(1);
 					}
 					grabFrameAmlogic();
 				}
@@ -403,7 +416,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Framebuffer");
 						_messageShow = true;
-						//setHdrToneMappingEnabled(0);
+						setHdrToneMappingEnabled(0);
 					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow)
