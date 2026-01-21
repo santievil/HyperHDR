@@ -341,6 +341,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
+						setHdrToneMappingEnabled(1);
 					}
 					grabFrameAmlogic();
 				}
@@ -349,6 +350,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Framebuffer");
 						_messageShow = true;
+						setHdrToneMappingEnabled(0);
 					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow)
