@@ -689,7 +689,7 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 
 	Debug(
 		_log,
-		"Apply LUT decision: useLut={} lutInit={} lutPtrValid={} hdrToneMapping={}",
+		"Apply LUT decision: lutbufInit={} lutdata={} hdrToneMapping={}",
 		//useLut,
 		_lutBufferInit,
 		(_lut.data() != nullptr),
