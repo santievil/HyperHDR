@@ -538,14 +538,14 @@ bool AmlogicGrabber::grabFrameAmlogic()
 
 		_amlFrame.resize(_bytesToRead);
 
-		Info(
+		/*Info(
 			_log,
 			"Amlogic grab: width={} height={} linelen={} bytesToRead={}",
 			_width,
 			_height,
 			linelen,
 			_bytesToRead
-		);
+		);*/
 
 
 		if (_amlFrame.size() == 0) {
@@ -578,7 +578,7 @@ bool AmlogicGrabber::grabFrameAmlogic()
 						memcpy(_lastValidFrame.data(), _amlFrame.data(), _bytesToRead);
 					}
 
-					Debug(
+					/*Debug(
 						_log,
 						"Apply LUT: frameSize={} expected={} strideWidth={} height={} lutSize={} hdrToneMapping={}",
 						_amlFrame.size(),
@@ -587,17 +587,17 @@ bool AmlogicGrabber::grabFrameAmlogic()
 						_height,
 						(_lut.data() != nullptr ? _lut.size() : 0),
 						getHdrToneMappingEnabled()
-					);
+					);*/
 
 
 					 // Aplicar LUT al frame completo (BGR888 con padding)
-					FrameDecoder::applyLUT(
+					/*FrameDecoder::applyLUT(
 						static_cast<uint8_t*>(_amlFrame.data()),
 						linelen / 3,          // width REAL con padding
 						_height,
 						_lut.data(),
 						getHdrToneMappingEnabled()
-					);
+					);*/
 
 
 					processSystemFrameBGR(static_cast<uint8_t*>(_amlFrame.data()), linelen);
@@ -608,13 +608,13 @@ bool AmlogicGrabber::grabFrameAmlogic()
 					if (_lastValidFrame.size() > 0)
 					{					
 						 // Aplicar LUT al frame completo (BGR888 con padding)
-						FrameDecoder::applyLUT(
+						/*FrameDecoder::applyLUT(
 							static_cast<uint8_t*>(_amlFrame.data()),
 							linelen / 3,          // width REAL con padding
 							_height,
 							_lut.data(),
 							getHdrToneMappingEnabled()
-						);
+						);*/
 
 						processSystemFrameBGR(_lastValidFrame.data(), linelen);
 						return true;
