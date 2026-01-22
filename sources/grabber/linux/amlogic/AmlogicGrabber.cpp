@@ -172,7 +172,7 @@ void AmlogicGrabber::loadLutFile()
 
 		QString userFile = QString("%1/%2").arg(_configurationPath).arg(_userLutFile);
 		files.prepend(userFile);
-		Info(_log, "Adding user LUT file otro for searching: {:s}", (userFile));
+		Info(_log, "Adding user LUT file for searching: {:s}", (userFile));
 	}
 	
 	Info(_log, "Rutas LUT {}", files.join(", ").toStdString());
@@ -192,7 +192,7 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
-		loadLutFile();
+		//loadLutFile();
 		//loadLutFile(PixelFormat::RGB24);
 		//emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
@@ -407,8 +407,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;						
-						//setHdrToneMappingEnabled(1);
-						loadLutFile();
+						setHdrToneMappingEnabled(1);
 					}
 					grabFrameAmlogic();
 				}

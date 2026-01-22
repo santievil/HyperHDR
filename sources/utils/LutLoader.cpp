@@ -53,92 +53,92 @@ void LutLoader::loadLutFile(const LoggerName& _log, PixelFormat color, const QLi
 		return;
 	}
 
-	//if (_hdrToneMappingEnabled || is_yuv)
-	//{
-	for (QString fileName3d : files)
+	if (_hdrToneMappingEnabled || is_yuv)
 	{
-		QFile file(fileName3d);
-		bool compressed = false;
-
-		if (file.open(QIODevice::ReadOnly)
-			#ifdef ENABLE_ZSTD
-				|| [&]() {file.setFileName(fileName3d + ".zst"); compressed = true; return file.open(QIODevice::ReadOnly); } ()
-			#endif
-			)
+		for (QString fileName3d : files)
 		{
-			int length;
+			QFile file(fileName3d);
+			bool compressed = false;
 
-			if (_log.size())
+			if (file.open(QIODevice::ReadOnly)
+				#ifdef ENABLE_ZSTD
+					|| [&]() {file.setFileName(fileName3d + ".zst"); compressed = true; return file.open(QIODevice::ReadOnly); } ()
+				#endif
+				)
 			{
-				Debug(_log, "LUT file found: {:s} ({:s})", (file.fileName()), (compressed) ? "compressed" : "uncompressed");
-			}
+				int length;
 
-			length = file.size();
-
-			if ((length == LUT_FILE_SIZE * 3) || compressed)
-			{
-				int index = 0;
-
-				if (is_yuv && _hdrToneMappingEnabled)
+				if (_log.size())
 				{
-					if (_log.size()) Debug(_log, "Index 1 for HDR YUV");
-					index = LUT_FILE_SIZE;
+					Debug(_log, "LUT file found: {:s} ({:s})", (file.fileName()), (compressed) ? "compressed" : "uncompressed");
 				}
-				else if (is_yuv)
-				{
-					if (_log.size()) Debug(_log, "Index 2 for YUV");
-					index = LUT_FILE_SIZE * 2;
-				}
-				else
-				{
-					if (_log.size()) Debug(_log, "Index 0 for HDR RGB");
-				}					
 
-				_lut.resize(LUT_FILE_SIZE + LUT_MEMORY_ALIGN);
+				length = file.size();
 
-				if (!compressed)
+				if ((length == LUT_FILE_SIZE * 3) || compressed)
 				{
-					file.seek(index);
+					int index = 0;
 
-					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
+					if (is_yuv && _hdrToneMappingEnabled)
 					{
-						if (_log.size()) Error(_log, "Error reading LUT file {:s}", (fileName3d));
+						if (_log.size()) Debug(_log, "Index 1 for HDR YUV");
+						index = LUT_FILE_SIZE;
+					}
+					else if (is_yuv)
+					{
+						if (_log.size()) Debug(_log, "Index 2 for YUV");
+						index = LUT_FILE_SIZE * 2;
 					}
 					else
 					{
-						_lutBufferInit = true;
-						if (_log.size()) Info(_log, "Found and loaded LUT: '{:s}'", (fileName3d));
+						if (_log.size()) Debug(_log, "Index 0 for HDR RGB");
+					}					
+
+					_lut.resize(LUT_FILE_SIZE + LUT_MEMORY_ALIGN);
+
+					if (!compressed)
+					{
+						file.seek(index);
+
+						if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
+						{
+							if (_log.size()) Error(_log, "Error reading LUT file {:s}", (fileName3d));
+						}
+						else
+						{
+							_lutBufferInit = true;
+							if (_log.size()) Info(_log, "Found and loaded LUT: '{:s}'", (fileName3d));
+						}
 					}
+					else
+					{
+						_lutBufferInit = decompressLut(_log, file, index);
+						if (_log.size())
+						{
+							if (_lutBufferInit) Info(_log, "Found and loaded LUT: '{:s}'", (fileName3d));
+							else Error(_log, "Error reading LUT file {:s}", (fileName3d));
+						}
+					}
+
+					// hasher(index / LUT_FILE_SIZE, _log);
 				}
 				else
 				{
-					_lutBufferInit = decompressLut(_log, file, index);
-					if (_log.size())
-					{
-						if (_lutBufferInit) Info(_log, "Found and loaded LUT: '{:s}'", (fileName3d));
-						else Error(_log, "Error reading LUT file {:s}", (fileName3d));
-					}
+					if (_log.size()) Error(_log, "LUT file has invalid length: {:d} vs {:d} => {:s}", length, (LUT_FILE_SIZE * 3), (fileName3d));
 				}
 
-				// hasher(index / LUT_FILE_SIZE, _log);
+				file.close();
+
+				return;
 			}
 			else
 			{
-				if (_log.size()) Error(_log, "LUT file has invalid length: {:d} vs {:d} => {:s}", length, (LUT_FILE_SIZE * 3), (fileName3d));
+				if (_log.size()) Warning(_log, "LUT file is not found here: {:s}", (fileName3d));
 			}
-
-			file.close();
-
-			return;
 		}
-		else
-		{
-			if (_log.size()) Warning(_log, "LUT file is not found here: {:s}", (fileName3d));
-		}
+
+		if (_log.size()) Error(_log, "Could not find any required LUT file");
 	}
-
-	if (_log.size()) Error(_log, "Could not find any required LUT file");
-	//}
 }
 
 bool LutLoader::decompressLut(const LoggerName& _log, QFile& file, int index)
