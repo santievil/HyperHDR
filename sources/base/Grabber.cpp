@@ -696,7 +696,8 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 		_hdrToneMappingEnabled
 	);
 
-	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	//FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (!_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 
 	if (_signalDetectionEnabled)
 	{

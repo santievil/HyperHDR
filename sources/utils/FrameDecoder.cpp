@@ -411,6 +411,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 		}
 		else while (dLine < dLineEnd)
 		{
+			Info(_log, "Apica LUT RGB.");
 			memcpy(&buffer, &sLine, 3);
 			sLine += divisionX;
 			ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);

@@ -407,7 +407,8 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;						
-						setHdrToneMappingEnabled(1);
+						//setHdrToneMappingEnabled(1);
+						loadLutFile();
 					}
 					grabFrameAmlogic();
 				}
