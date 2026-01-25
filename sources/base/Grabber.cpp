@@ -687,17 +687,14 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	Debug(
-		_log,
-		"Apply LUT decision: lutbufInit={} lutdata={} hdrToneMapping={}",
-		//useLut,
-		_lutBufferInit,
-		(_lut.data() != nullptr),
-		_hdrToneMappingEnabled
-	);
+	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 
-	//FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
-	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (!_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	if (getHdrToneMappingEnabled())
+	{
+		Info(_log, "Aplicamos LUT a la imagen ya RGB");
+		Info(_log, "HDR=%d LUT=%p", getHdrToneMappingEnabled(), _lut.data());
+		FrameDecoder::applyLUT(image.rawMem(), image.width(), image.height(), _lut.data(), getHdrToneMappingEnabled());
+	}
 
 	if (_signalDetectionEnabled)
 	{

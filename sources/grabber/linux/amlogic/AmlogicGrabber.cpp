@@ -192,7 +192,7 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
-		//loadLutFile();
+		loadLutFile();
 		//loadLutFile(PixelFormat::RGB24);
 		//emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}

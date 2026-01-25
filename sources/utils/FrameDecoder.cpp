@@ -387,7 +387,6 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 	uint32_t	ind_lutd;
 	uint8_t		buffer[8];
 	size_t		divisionX = (size_t)division * 3;
-	LoggerName logger("processSystemImageBGR");
 
 	if (lineSize == 0)
 		lineSize = _actualWidth * 3;
@@ -410,15 +409,14 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 				sLine += divisionX + 2;
 			}
 		}
-		else while (dLine < dLineEnd)
-		{
-			Error(logger, "Apica LUT RGB.");
+		/*else while (dLine < dLineEnd) NO APLICO LUT AUN
+		{	
 			memcpy(&buffer, &sLine, 3);
 			sLine += divisionX;
 			ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
 			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
 			dLine += 3;
-		}
+		}*/
 	}
 }
 
