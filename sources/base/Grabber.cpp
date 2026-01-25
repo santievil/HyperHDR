@@ -693,6 +693,9 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 	{
 		Info(_log, "Aplicamos LUT a la imagen ya RGB");
 		Info(_log, "HDR={} LUT loaded={} size={}", getHdrToneMappingEnabled(), _lut.data() != nullptr, _lut.size());
+		Info(_log, "Primeros pixels: {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}", image.rawMem()[0], image.rawMem()[1], image.rawMem()[2], image.rawMem()[3], image.rawMem()[4], image.rawMem()[5]);
+		Info(_log, "AML Frame info: bytes=%zu width=%d height=%d lineSize=%d", _amlFrame.size(), _width, _height, lineSize);
+
 		FrameDecoder::applyLUT(image.rawMem(), image.width(), image.height(), _lut.data(), getHdrToneMappingEnabled());
 	}
 
