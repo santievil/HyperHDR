@@ -182,7 +182,7 @@ void AmlogicGrabber::loadLutFile()
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
-	/*if (_hdrToneMappingEnabled != mode)
+	if (_hdrToneMappingEnabled != mode)
 	{
 		_hdrToneMappingEnabled = mode;
 		if (!mode)
@@ -198,9 +198,8 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 	}
 	else
 		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
-		*/
-	if (_hdrToneMappingEnabled == 1)
-		loadLutFile();
+		
+	
 }
 
 AmlogicGrabber::~AmlogicGrabber()
