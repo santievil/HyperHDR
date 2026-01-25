@@ -379,7 +379,7 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 	}
 }
 
-void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 	int startX, int startY,
 	uint8_t* source, int _actualWidth, int _actualHeight,
 	int division, uint8_t* _lutBuffer, int lineSize)
@@ -398,7 +398,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
 		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 3)));
 
-		/*if (_lutBuffer == nullptr)
+		if (_lutBuffer == nullptr)
 		{
 			sLine += 2;
 			while (dLine < dLineEnd)
@@ -409,25 +409,60 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 				sLine += divisionX + 2;
 			}
 		}
-		else while (dLine < dLineEnd) NO APLICO LUT AUN
+		else while (dLine < dLineEnd)
 		{	
 			memcpy(&buffer, &sLine, 3);
 			sLine += divisionX;
 			ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
 			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
 			dLine += 3;
-		}*/
+		}
+	}
+}*/
 
-		sLine += 2;
+void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+	int startX, int startY,
+	uint8_t* source, int _actualWidth, int _actualHeight,
+	int division, uint8_t* _lutBuffer, int lineSize)
+{
+	uint32_t ind_lutd;
+	uint8_t buffer[8];
+	size_t divisionX = (size_t)division * 3;
+
+	if (lineSize == 0)
+		lineSize = _actualWidth * 3;
+
+	for (int j = 0; j < targetSizeY; j++)
+	{
+		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+		uint8_t* dLine = image.rawMem() + (size_t)j * targetSizeX * 3;
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 3)));
+
+		// Recorremos la línea
+		sLine += 2; // Ajuste inicial para invertir BGR→RGB
 		while (dLine < dLineEnd)
 		{
-			*dLine++ = *sLine--;
-			*dLine++ = *sLine--;
-			*dLine++ = *sLine;
+			// Convertimos BGR -> RGB en buffer
+			buffer[0] = *sLine--; // R
+			buffer[1] = *sLine--; // G
+			buffer[2] = *sLine;   // B
 			sLine += divisionX + 2;
+
+			// Aplicar LUT si existe
+			if (_lutBuffer != nullptr)
+			{
+				ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[2]);
+				memcpy(buffer, &_lutBuffer[ind_lutd], 3);
+			}
+
+			// Copiar resultado a la línea de destino
+			memcpy(dLine, buffer, 3);
+			dLine += 3;
 		}
 	}
 }
+
 
 
 void FrameDecoder::processSystemImageBGR16(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
