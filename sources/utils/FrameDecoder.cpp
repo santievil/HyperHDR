@@ -429,6 +429,20 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 	uint8_t buffer[8];
 	size_t divisionX = (size_t)division * 3;
 
+	LoggerName logger("processSystemImageBGR");
+	if (_lutBuffer != nullptr)
+	{
+		Error(logger, "LUT buffer activo, primeros 12 bytes: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+        _lutBuffer[0], _lutBuffer[1], _lutBuffer[2],
+        _lutBuffer[3], _lutBuffer[4], _lutBuffer[5],
+        _lutBuffer[6], _lutBuffer[7], _lutBuffer[8],
+        _lutBuffer[9], _lutBuffer[10], _lutBuffer[11]);
+	}else{
+		Error(logger, "_lutBuffer es nulo");
+	}
+
+	
+
 	if (lineSize == 0)
 		lineSize = _actualWidth * 3;
 
