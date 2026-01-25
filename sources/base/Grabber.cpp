@@ -687,6 +687,8 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
+	Info(_log, "Primeros bytes source: {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}", source[0], source[1], source[2], source[3], source[4], source[5]);
+
 	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 
 	if (getHdrToneMappingEnabled())

@@ -398,7 +398,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
 		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 3)));
 
-		if (_lutBuffer == nullptr)
+		/*if (_lutBuffer == nullptr)
 		{
 			sLine += 2;
 			while (dLine < dLineEnd)
@@ -409,7 +409,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 				sLine += divisionX + 2;
 			}
 		}
-		/*else while (dLine < dLineEnd) NO APLICO LUT AUN
+		else while (dLine < dLineEnd) NO APLICO LUT AUN
 		{	
 			memcpy(&buffer, &sLine, 3);
 			sLine += divisionX;
@@ -417,6 +417,15 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
 			dLine += 3;
 		}*/
+
+		sLine += 2;
+		while (dLine < dLineEnd)
+		{
+			*dLine++ = *sLine--;
+			*dLine++ = *sLine--;
+			*dLine++ = *sLine;
+			sLine += divisionX + 2;
+		}
 	}
 }
 
