@@ -692,7 +692,7 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 	if (getHdrToneMappingEnabled())
 	{
 		Info(_log, "Aplicamos LUT a la imagen ya RGB");
-		Info(_log, "HDR=%d LUT=%p", getHdrToneMappingEnabled(), _lut.data());
+		Info(_log, "HDR={} LUT loaded={} size={}", getHdrToneMappingEnabled(), _lut.data() != nullptr, _lut.size());
 		FrameDecoder::applyLUT(image.rawMem(), image.width(), image.height(), _lut.data(), getHdrToneMappingEnabled());
 	}
 
