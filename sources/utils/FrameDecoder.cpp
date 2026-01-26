@@ -421,7 +421,7 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 }*/
 
 //Esta es la buena
-/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 	int startX, int startY,
 	uint8_t* source, int _actualWidth, int _actualHeight,
 	int division, uint8_t* _lutBuffer, int lineSize)
@@ -462,9 +462,9 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 			dLine += 3;
 		}
 	}
-}*/
+}
 
-void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
     int startX, int startY,
     uint8_t* source, int _actualWidth, int _actualHeight,
     int division, uint8_t* _lutBuffer, int lineSize)
@@ -527,7 +527,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
         }
     }
 	image.setOriginFormat(PixelFormat::NV12);
-}
+}*/
 
 
 
