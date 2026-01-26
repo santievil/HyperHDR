@@ -455,7 +455,8 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	}*/
 
 	auto pixelFormat = image.getOriginFormat();
-	Info(_log, "Formato tratado: %d", static_cast<int>(image.getOriginFormat()));
+	Info(_log, "Formato tratado: {}", static_cast<int>(image.getOriginFormat()));
+
 
 	int boardIndex = -1;
 
