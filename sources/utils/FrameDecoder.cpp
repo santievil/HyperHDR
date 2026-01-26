@@ -526,6 +526,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
             uvPlane[uvIndex + 1] = (uint8_t)(sumV / 4);
         }
     }
+	outputImage.setOriginFormat(PixelFormat::NV12);
 }
 
 

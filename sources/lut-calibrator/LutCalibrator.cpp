@@ -431,7 +431,7 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	/////////////////////////  Verify source  ////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 
-	if (image.width() < 1280 || image.height() < 720)
+	/*if (image.width() < 1280 || image.height() < 720)
 	{
 		error(QString("Too low resolution: 1280/720 is the minimum. Received video frame: %1x%2. Stopped.").arg(image.width()).arg(image.height()));		
 		return;
@@ -452,7 +452,10 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	else if (pixelFormat == PixelFormat::P010)
 	{
 		bestResult->signal.isSourceP010 = true;
-	}
+	}*/
+
+	auto pixelFormat = image.getOriginFormat();
+	Info(_log, "Formato tratado: %d", static_cast<int>(image.getOriginFormat()));
 
 	int boardIndex = -1;
 
