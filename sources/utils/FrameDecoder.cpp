@@ -420,7 +420,8 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 	}
 }*/
 
-void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+//Esta es la buena
+/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 	int startX, int startY,
 	uint8_t* source, int _actualWidth, int _actualHeight,
 	int division, uint8_t* _lutBuffer, int lineSize)
@@ -428,20 +429,6 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 	uint32_t ind_lutd;
 	uint8_t buffer[8];
 	size_t divisionX = (size_t)division * 3;
-
-/*	LoggerName logger("processSystemImageBGR");
-	if (_lutBuffer != nullptr)
-	{
-		Error(logger, "LUT buffer activo, primeros 12 bytes: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
-        _lutBuffer[0], _lutBuffer[1], _lutBuffer[2],
-        _lutBuffer[3], _lutBuffer[4], _lutBuffer[5],
-        _lutBuffer[6], _lutBuffer[7], _lutBuffer[8],
-        _lutBuffer[9], _lutBuffer[10], _lutBuffer[11]);
-	}else{
-		Error(logger, "_lutBuffer es nulo");
-	}
-
-	*/
 
 	if (lineSize == 0)
 		lineSize = _actualWidth * 3;
@@ -475,7 +462,74 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 			dLine += 3;
 		}
 	}
+}*/
+
+void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+    int startX, int startY,
+    uint8_t* source, int _actualWidth, int _actualHeight,
+    int division, uint8_t* _lutBuffer, int lineSize)
+{
+    uint8_t buffer[3]; // RGB temporal
+    size_t divisionX = (size_t)division * 3;
+
+    if (lineSize == 0)
+        lineSize = _actualWidth * 3;
+
+    // Creamos planos NV12 dentro de image.rawMem()
+    // Y ocupará la primera parte del buffer, UV la segunda parte
+    uint8_t* yPlane = image.rawMem();
+    uint8_t* uvPlane = yPlane + targetSizeX * targetSizeY;
+
+    for (int j = 0; j < targetSizeY; j++)
+    {
+        size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+        uint8_t* sLine = source + (lineSource * lineSize) + ((size_t)startX * 3);
+        sLine += 2; // Ajuste BGR → RGB
+
+        for (int i = 0; i < targetSizeX; i += 2)
+        {
+            uint32_t sumU = 0, sumV = 0;
+
+            // Procesamos bloque 2x2
+            for (int yOffset = 0; yOffset < 2; ++yOffset)
+            {
+                int jj = j + yOffset;
+                if (jj >= targetSizeY) continue;
+
+                uint8_t* sLineRow = sLine + yOffset * lineSize;
+
+                for (int xOffset = 0; xOffset < 2; ++xOffset)
+                {
+                    int ii = i + xOffset;
+                    if (ii >= targetSizeX) continue;
+
+                    uint8_t* pixel = sLineRow + xOffset * divisionX;
+                    uint8_t R = *pixel--;
+                    uint8_t G = *pixel--;
+                    uint8_t B = *pixel;
+
+                    // Calculamos YUV
+                    uint8_t Y = (uint8_t)((0.257 * R + 0.504 * G + 0.098 * B) + 16);
+                    uint8_t U = (uint8_t)((-0.148 * R - 0.291 * G + 0.439 * B) + 128);
+                    uint8_t V = (uint8_t)((0.439 * R - 0.368 * G - 0.071 * B) + 128);
+
+                    // Guardamos Y en el plano Y
+                    yPlane[jj * targetSizeX + ii] = Y;
+
+                    // Acumulamos U y V para el bloque
+                    sumU += U;
+                    sumV += V;
+                }
+            }
+
+            // Guardamos UV promedio en el plano UV (intercalado)
+            int uvIndex = (j / 2) * targetSizeX + i;
+            uvPlane[uvIndex]     = (uint8_t)(sumU / 4);
+            uvPlane[uvIndex + 1] = (uint8_t)(sumV / 4);
+        }
+    }
 }
+
 
 
 
