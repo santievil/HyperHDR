@@ -469,34 +469,32 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
     uint8_t* source, int _actualWidth, int _actualHeight,
     int division, uint8_t* _lutBuffer, int lineSize)
 {
-    uint8_t buffer[3]; // RGB temporal
-    size_t divisionX = (size_t)division * 3;
-
     if (lineSize == 0)
         lineSize = _actualWidth * 3;
 
-    // Creamos planos NV12 dentro de image.rawMem()
-    // Y ocupará la primera parte del buffer, UV la segunda parte
-    uint8_t* yPlane = image.rawMem();
-    uint8_t* uvPlane = yPlane + targetSizeX * targetSizeY;
+    uint8_t* yPlane = image.rawMem();                       // Plano Y
+    uint8_t* uvPlane = yPlane + targetSizeX * targetSizeY;  // Plano UV
 
-    for (int j = 0; j < targetSizeY; j++)
+    size_t divisionX = (size_t)division * 3;
+
+    for (int j = 0; j < targetSizeY; j += 2)  // Bloques de 2 filas
     {
-        size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
-        uint8_t* sLine = source + (lineSource * lineSize) + ((size_t)startX * 3);
-        sLine += 2; // Ajuste BGR → RGB
+        size_t lineSource0 = std::min(startY + j * division, _actualHeight - 1);
+        size_t lineSource1 = std::min(startY + (j + 1) * division, _actualHeight - 1);
 
-        for (int i = 0; i < targetSizeX; i += 2)
+        uint8_t* sLine0 = source + lineSource0 * lineSize + startX * 3 + 2;  // BGR→RGB
+        uint8_t* sLine1 = source + lineSource1 * lineSize + startX * 3 + 2;
+
+        for (int i = 0; i < targetSizeX; i += 2)  // Bloques de 2 columnas
         {
             uint32_t sumU = 0, sumV = 0;
 
-            // Procesamos bloque 2x2
             for (int yOffset = 0; yOffset < 2; ++yOffset)
             {
                 int jj = j + yOffset;
                 if (jj >= targetSizeY) continue;
 
-                uint8_t* sLineRow = sLine + yOffset * lineSize;
+                uint8_t* sLineRow = (yOffset == 0) ? sLine0 : sLine1;
 
                 for (int xOffset = 0; xOffset < 2; ++xOffset)
                 {
@@ -508,28 +506,27 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                     uint8_t G = *pixel--;
                     uint8_t B = *pixel;
 
-                    // Calculamos YUV
+                    // YUV 4:2:0
                     uint8_t Y = (uint8_t)((0.257 * R + 0.504 * G + 0.098 * B) + 16);
                     uint8_t U = (uint8_t)((-0.148 * R - 0.291 * G + 0.439 * B) + 128);
                     uint8_t V = (uint8_t)((0.439 * R - 0.368 * G - 0.071 * B) + 128);
 
-                    // Guardamos Y en el plano Y
+                    // Guardar Y
                     yPlane[jj * targetSizeX + ii] = Y;
 
-                    // Acumulamos U y V para el bloque
+                    // Acumular para UV promedio
                     sumU += U;
                     sumV += V;
                 }
             }
 
-            // Guardamos UV promedio en el plano UV (intercalado)
+            // Guardar UV intercalado (un byte U y uno V para bloque 2x2)
             int uvIndex = (j / 2) * targetSizeX + i;
             uvPlane[uvIndex]     = (uint8_t)(sumU / 4);
             uvPlane[uvIndex + 1] = (uint8_t)(sumV / 4);
         }
     }
 }
-
 
 
 
