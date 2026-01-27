@@ -278,9 +278,8 @@
 			},
 			"required" : true,
 			"propertyOrder" : 62
-		}		
-	},
-	"autoToneMap" :
+		},
+		"autoToneMap" :
 		{
 			"type" : "boolean",
 			"format": "checkbox",
@@ -288,6 +287,7 @@
 			"title" : "edt_conf_smooth_updateDelay_title",
 			"default" : false,
 			"propertyOrder" : 63
-		},
+		}		
+	},
 	"additionalProperties" : false
 }
