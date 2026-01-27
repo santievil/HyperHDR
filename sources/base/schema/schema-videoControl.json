@@ -41,7 +41,7 @@
 			"default" : false,
 			"required" : true,
 			"propertyOrder" : 4
-		},
+		}
 	},
 	"additionalProperties" : false
 }
