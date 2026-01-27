@@ -155,6 +155,14 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 			// HDR tone mapping
 			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? 1 : 0);
 #endif
+#ifdef ENABLE_AMLOGIC
+			// autoToneMap
+			if (obj.contains("autoToneMap"))
+			{
+				bool autoToneMap = obj["autoToneMap"].toBool(false);
+				_grabber->setAutoToneMap(autoToneMap);
+			}
+#endif
 
 			// signal
 			_grabber->setSignalDetectionEnable(obj["signalDetection"].toBool(false));
