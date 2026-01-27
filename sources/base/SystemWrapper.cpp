@@ -157,10 +157,10 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 #endif
 #ifdef ENABLE_AMLOGIC
 			// autoToneMap
-			if (obj.contains("autoToneMap"))
+			if (obj.contains("autoToneMapAML"))
 			{
-				bool autoToneMap = obj["autoToneMap"].toBool(false);
-				_grabber->setAutoToneMap(autoToneMap);
+				bool autoToneMapAML = obj["autoToneMapAML"].toBool(false);
+				_grabber->setAutoToneMappingAML(autoToneMapAML);
 			}
 #endif
 

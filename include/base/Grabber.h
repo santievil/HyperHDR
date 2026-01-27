@@ -130,6 +130,7 @@ public:
 
 	void setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec);
 	void setAutoToneMappingCurrentStateEnabled(bool enabled);
+	void setAutoToneMappingAML(bool enabled);
 
 	struct DevicePropertiesItem
 	{

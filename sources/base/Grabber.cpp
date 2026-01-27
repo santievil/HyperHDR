@@ -1011,3 +1011,8 @@ void Grabber::setAutoToneMappingCurrentStateEnabled(bool enabled)
 {
 	_automaticToneMapping.setToneMapping(enabled);
 }
+
+void Grabber::setAutoToneMappingAML(bool enabled)
+{
+    _automaticToneMapping.setEnabled(enabled);
+}

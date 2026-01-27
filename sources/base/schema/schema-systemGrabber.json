@@ -279,7 +279,7 @@
 			"required" : true,
 			"propertyOrder" : 62
 		},
-		"autoToneMap" :
+		"autoToneMapAML" :
 		{
 			"type" : "boolean",
 			"format": "checkbox",
