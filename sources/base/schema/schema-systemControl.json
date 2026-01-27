@@ -32,15 +32,6 @@
 			"title" : "edt_conf_cec_control_title",
 			"default" : false,
 			"propertyOrder" : 3
-		},
-		"autoToneMap" :
-		{
-			"type" : "boolean",
-			"format": "checkbox",
-			"required" : true,
-			"title" : "edt_conf_smooth_updateDelay_title",
-			"default" : false,
-			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties" : false
