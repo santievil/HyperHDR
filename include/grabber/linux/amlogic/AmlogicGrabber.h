@@ -56,7 +56,7 @@ public slots:
 
 	void newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount) override {};
 
-	void setAutoToneMappingAML(bool enabled) override;
+	void setAutoToneMappingAML(bool enabled);
 
 private:
 	QString GetSharedLut();
@@ -97,5 +97,5 @@ private:
 	QTimer		_timer;
 	QSemaphore	_semaphore;
 	int			_handle;
-	bool _autoToneMap = false;
+	bool _autoToneMappingAML = false;
 };
