@@ -161,10 +161,11 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 				bool autoToneMapAML = obj["autoToneMapAML"].toBool(false);
 				
 				// casteamos a AmlogicGrabber* porque solo ellos tienen esta función
-				if (auto amlGrabber = dynamic_cast<AmlogicGrabber*>(_grabber))
+				/*if (auto amlGrabber = dynamic_cast<AmlogicGrabber*>(_grabber))
 				{
 					amlGrabber->setAutoToneMappingAML(autoToneMapAML);
-				}
+				}*/
+			 	Info(_log, "AmlogicGrabber AutoToneMap = %s", autoToneMapAML ? "ON" : "OFF");
 			}
 #endif
 
