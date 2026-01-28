@@ -37,7 +37,7 @@
 #include <base/HyperHdrManager.h>
 
 #ifdef ENABLE_AMLOGIC
-    class AmlogicGrabber;
+    #include <grabber/linux/amlogic/AmlogicGrabber.h>  // ← AÑADIR ESTO (reemplaza el forward declaration)
 #endif
 
 SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)
