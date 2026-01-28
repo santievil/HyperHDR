@@ -36,6 +36,10 @@
 #include <utils/GlobalSignals.h>
 #include <base/HyperHdrManager.h>
 
+#ifdef ENABLE_AMLOGIC
+    class AmlogicGrabber;
+#endif
+
 SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)
 	: _grabberName(grabberName)
 	, _log(grabberName)
@@ -159,15 +163,15 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 			if (obj.contains("autoToneMapAML"))
 			{
 				bool autoToneMapAML = obj["autoToneMapAML"].toBool(false);
-				
-				// casteamos a AmlogicGrabber* porque solo ellos tienen esta función
-				/*if (auto amlGrabber = dynamic_cast<AmlogicGrabber*>(_grabber))
+
+				if (auto amlGrabber = dynamic_cast<AmlogicGrabber*>(_grabber))
 				{
+					Info(_log, "Cast exitoso! Aplicando AutoToneMap = {}", autoToneMapAML ? "ON" : "OFF");
 					amlGrabber->setAutoToneMappingAML(autoToneMapAML);
-				}*/
-			 	Info(_log, "AmlogicGrabber AutoToneMap = {}", autoToneMapAML ? "ON" : "OFF");
-			}else{
-				Info(_log, "No tiene autoToneMapAML");
+				}else
+				{
+					Warning(_log, "No es un AmlogicGrabber, cast falló");
+				}
 			}
 #endif
 
