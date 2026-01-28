@@ -83,6 +83,7 @@ private:
 	bool stopAmlogic();
 	bool grabFrameAmlogic();
 	bool grabFrameFramebuffer();
+	bool checkKodiHDRStatus();
 
 	MemoryBuffer<uint8_t> _amlFrame;
 	MemoryBuffer<uint8_t> _lastValidFrame;
@@ -97,5 +98,6 @@ private:
 	QTimer		_timer;
 	QSemaphore	_semaphore;
 	int			_handle;
-	bool _autoToneMappingAML = false;
+	bool _autoToneMappingAML;
+	bool currentHDRState;
 };

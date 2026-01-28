@@ -88,6 +88,8 @@ void AmlogicGrabber::resetVariables()
 	_videoDev = -1;
 	_usingAmlogic = false;
 	_messageShow = false;
+	_autoToneMappingAML = false;
+	_currentHDRState = false;
 }
 
 /*QString AmlogicGrabber::GetSharedLut()
@@ -140,6 +142,81 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 }
 */
+
+bool AmlogicGrabber::checkKodiHDRStatus()
+{
+    const QString logPath = "/storage/.kodi/temp/kodi.log";
+    QFile logFile(logPath);
+    
+    if (!logFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        Warning(_log, "No se pudo abrir kodi.log");
+        return false;
+    }
+    
+    // Ir al final del archivo
+    logFile.seek(logFile.size());
+    
+    QStringList lastLines;
+    qint64 pos = logFile.size();
+    int lineCount = 0;
+    const int maxLines = 1000;
+    
+    // Leer hacia atrás hasta obtener 1000 líneas
+    while (pos > 0 && lineCount < maxLines)
+    {
+        pos--;
+        logFile.seek(pos);
+        
+        if (logFile.peek(1) == "\n" || pos == 0)
+        {
+            QString line = logFile.readLine().trimmed();
+            if (!line.isEmpty())
+            {
+                lastLines.prepend(line);
+                lineCount++;
+            }
+        }
+    }
+    
+    logFile.close();
+    
+    Debug(_log, "Kodi log: Leyendo últimas {} líneas", lineCount);
+    
+    // Buscar en las últimas líneas (de más reciente a más antigua)
+    QString lastOnPlayMedia;
+    bool hdrDetected = false;
+    
+    for (int i = lastLines.size() - 1; i >= 0; i--)
+    {
+        const QString& line = lastLines[i];
+        
+        // Si encontramos HDR primero (leyendo hacia atrás), es la reproducción actual
+        if (line.contains("CAMLCodec::OpenDecoder hdr type:"))
+        {
+            hdrDetected = true;
+            Info(_log, "Kodi log: HDR detectado -> {}", line.mid(line.indexOf("hdr type:")).toStdString());
+        }
+        
+        // Al encontrar OnPlayMedia, detenemos (es el inicio de la reproducción actual)
+        if (line.contains("OnPlayMedia"))
+        {
+            lastOnPlayMedia = line;
+            Info(_log, "Kodi log: Última reproducción -> {}", line.mid(line.indexOf("OnPlayMedia")).left(80).toStdString());
+            break;
+        }
+    }
+    
+    if (lastOnPlayMedia.isEmpty())
+    {
+        Debug(_log, "Kodi log: No se encontró OnPlayMedia en las últimas {} líneas", maxLines);
+        return false;
+    }
+    
+    Info(_log, "Kodi log: Estado HDR = {}", hdrDetected ? "ACTIVADO" : "DESACTIVADO");
+    
+    return hdrDetected;
+}
 
 QString AmlogicGrabber::GetSharedLut()
 {
@@ -413,7 +490,8 @@ void AmlogicGrabber::grabFrame()
 					if (!_messageShow)
 					{
 						Info(_log, "Grabbing Amlogic");
-						_messageShow = true;						
+						_messageShow = true;
+						_currentHDRState = checkKodiHDRStatus();                    		
 						setHdrToneMappingEnabled(1);
 						//loadLutFile();
 					}
@@ -424,6 +502,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Framebuffer");
 						_messageShow = true;
+						_currentHDRState = false;
 						setHdrToneMappingEnabled(0);
 					}
 					stopNow = grabFrameFramebuffer();

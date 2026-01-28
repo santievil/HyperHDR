@@ -166,11 +166,7 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 
 				if (auto amlGrabber = dynamic_cast<AmlogicGrabber*>(_grabber))
 				{
-					Info(_log, "Cast exitoso! Aplicando AutoToneMap = {}", autoToneMapAML ? "ON" : "OFF");
 					amlGrabber->setAutoToneMappingAML(autoToneMapAML);
-				}else
-				{
-					Warning(_log, "No es un AmlogicGrabber, cast falló");
 				}
 			}
 #endif
