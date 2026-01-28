@@ -467,6 +467,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
+						QThread::msleep(200);
 						_currentHDRState = checkKodiHDRStatus();                    		
 						setHdrToneMappingEnabled(1);
 						//loadLutFile();
