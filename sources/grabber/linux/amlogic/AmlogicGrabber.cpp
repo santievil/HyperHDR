@@ -156,7 +156,7 @@ bool AmlogicGrabber::checkKodiHDRStatus()
     
     // Leer los últimos ~100KB del archivo
     qint64 fileSize = logFile.size();
-    qint64 readSize = qMin(fileSize, (qint64)100000);
+    qint64 readSize = qMin(fileSize, (qint64)1000000);
     
     logFile.seek(fileSize - readSize);
     QByteArray data = logFile.readAll();
