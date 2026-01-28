@@ -154,63 +154,39 @@ bool AmlogicGrabber::checkKodiHDRStatus()
         return false;
     }
     
-    // Ir al final del archivo
-    logFile.seek(logFile.size());
+    // Leer los últimos ~100KB del archivo (suficiente para 1000+ líneas)
+    qint64 fileSize = logFile.size();
+    qint64 readSize = qMin(fileSize, (qint64)100000); // 100KB
     
-    QStringList lastLines;
-    qint64 pos = logFile.size();
-    int lineCount = 0;
-    const int maxLines = 1000;
-    
-    // Leer hacia atrás hasta obtener 1000 líneas
-    while (pos > 0 && lineCount < maxLines)
-    {
-        pos--;
-        logFile.seek(pos);
-        
-        if (logFile.peek(1) == "\n" || pos == 0)
-        {
-            QString line = logFile.readLine().trimmed();
-            if (!line.isEmpty())
-            {
-                lastLines.prepend(line);
-                lineCount++;
-            }
-        }
-    }
-    
+    logFile.seek(fileSize - readSize);
+    QByteArray data = logFile.readAll();
     logFile.close();
     
-    Debug(_log, "Kodi log: Leyendo últimas {} líneas", lineCount);
+    // Convertir a líneas
+    QStringList lines = QString::fromUtf8(data).split('\n', Qt::SkipEmptyParts);
     
-    // Buscar en las últimas líneas (de más reciente a más antigua)
-    QString lastOnPlayMedia;
+    Debug(_log, "Kodi log: Leyendo últimas {} líneas", lines.size());
+    
+    // Buscar de atrás hacia adelante
     bool hdrDetected = false;
     
-    for (int i = lastLines.size() - 1; i >= 0; i--)
+    for (int i = lines.size() - 1; i >= 0; i--)
     {
-        const QString& line = lastLines[i];
+        const QString& line = lines[i];
         
         // Si encontramos HDR primero (leyendo hacia atrás), es la reproducción actual
         if (line.contains("CAMLCodec::OpenDecoder hdr type:"))
         {
             hdrDetected = true;
-            Info(_log, "Kodi log: HDR detectado -> {}", line.mid(line.indexOf("hdr type:")).toStdString());
+            Info(_log, "Kodi log: HDR detectado -> {}", line.mid(line.indexOf("hdr type:")).left(30).toStdString());
         }
         
         // Al encontrar OnPlayMedia, detenemos (es el inicio de la reproducción actual)
         if (line.contains("OnPlayMedia"))
         {
-            lastOnPlayMedia = line;
             Info(_log, "Kodi log: Última reproducción -> {}", line.mid(line.indexOf("OnPlayMedia")).left(80).toStdString());
             break;
         }
-    }
-    
-    if (lastOnPlayMedia.isEmpty())
-    {
-        Debug(_log, "Kodi log: No se encontró OnPlayMedia en las últimas {} líneas", maxLines);
-        return false;
     }
     
     Info(_log, "Kodi log: Estado HDR = {}", hdrDetected ? "ACTIVADO" : "DESACTIVADO");
