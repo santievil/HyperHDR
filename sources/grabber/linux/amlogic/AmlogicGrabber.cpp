@@ -154,44 +154,70 @@ bool AmlogicGrabber::checkKodiHDRStatus()
         return false;
     }
     
-    // Leer los últimos ~100KB del archivo (suficiente para 1000+ líneas)
+    // Leer los últimos ~100KB del archivo
     qint64 fileSize = logFile.size();
-    qint64 readSize = qMin(fileSize, (qint64)100000); // 100KB
+    qint64 readSize = qMin(fileSize, (qint64)100000);
     
     logFile.seek(fileSize - readSize);
     QByteArray data = logFile.readAll();
     logFile.close();
     
-    // Convertir a líneas
     QStringList lines = QString::fromUtf8(data).split('\n', Qt::SkipEmptyParts);
     
     Debug(_log, "Kodi log: Leyendo últimas {} líneas", lines.size());
     
-    // Buscar de atrás hacia adelante
-    bool hdrDetected = false;
+    // NUEVO: Mostrar primera y última línea
+    if (!lines.isEmpty())
+    {
+        Info(_log, "Kodi log: PRIMERA línea -> {}", lines.first().toStdString());
+        Info(_log, "Kodi log: ÚLTIMA línea -> {}", lines.last().toStdString());
+    }
+    
+    // Buscar si existe OnPlayMedia y hdr type
+    bool foundOnPlayMedia = false;
+    bool foundHdrType = false;
+    int onPlayMediaIndex = -1;
+    int hdrTypeIndex = -1;
     
     for (int i = lines.size() - 1; i >= 0; i--)
     {
-        const QString& line = lines[i];
-        
-        // Si encontramos HDR primero (leyendo hacia atrás), es la reproducción actual
-        if (line.contains("CAMLCodec::OpenDecoder hdr type:"))
+        if (!foundHdrType && lines[i].contains("hdr type:"))
         {
-            hdrDetected = true;
-            Info(_log, "Kodi log: HDR detectado -> {}", line.mid(line.indexOf("hdr type:")).left(30).toStdString());
+            foundHdrType = true;
+            hdrTypeIndex = i;
+            Info(_log, "Kodi log: Encontrado 'hdr type:' en línea {} -> {}", i, 
+                 lines[i].mid(lines[i].indexOf("hdr type:")).left(50).toStdString());
         }
         
-        // Al encontrar OnPlayMedia, detenemos (es el inicio de la reproducción actual)
-        if (line.contains("OnPlayMedia"))
+        if (!foundOnPlayMedia && lines[i].contains("OnPlayMedia"))
         {
-            Info(_log, "Kodi log: Última reproducción -> {}", line.mid(line.indexOf("OnPlayMedia")).left(80).toStdString());
+            foundOnPlayMedia = true;
+            onPlayMediaIndex = i;
+            Info(_log, "Kodi log: Encontrado 'OnPlayMedia' en línea {} -> {}", i,
+                 lines[i].mid(lines[i].indexOf("OnPlayMedia")).left(50).toStdString());
+        }
+        
+        if (foundHdrType && foundOnPlayMedia)
             break;
+    }
+    
+    // Verificar orden
+    if (foundOnPlayMedia && foundHdrType)
+    {
+        Info(_log, "Kodi log: hdr type en línea {}, OnPlayMedia en línea {}", 
+             hdrTypeIndex, onPlayMediaIndex);
+        
+        if (hdrTypeIndex > onPlayMediaIndex)
+        {
+            Info(_log, "Kodi log: Estado HDR = ACTIVADO");
+            return true;
         }
     }
     
-    Info(_log, "Kodi log: Estado HDR = {}", hdrDetected ? "ACTIVADO" : "DESACTIVADO");
+    Info(_log, "Kodi log: Estado HDR = DESACTIVADO (foundOnPlayMedia={}, foundHdrType={})", 
+         foundOnPlayMedia, foundHdrType);
     
-    return hdrDetected;
+    return false;
 }
 
 QString AmlogicGrabber::GetSharedLut()
