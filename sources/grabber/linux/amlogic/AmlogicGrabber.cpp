@@ -77,7 +77,7 @@ AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurati
 void AmlogicGrabber::setAutoToneMappingAML(bool enabled)
 {
     _autoToneMappingAML = enabled; // solo afecta a este grabber
-    Info(_log, "AmlogicGrabber AutoToneMap = {}", autoToneMapAML ? "ON" : "OFF");
+    Info(_log, "AmlogicGrabber AutoToneMap = {}", _autoToneMappingAML  ? "ON" : "OFF");
 }
 
 void AmlogicGrabber::resetVariables()
