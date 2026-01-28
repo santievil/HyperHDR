@@ -166,6 +166,8 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 					amlGrabber->setAutoToneMappingAML(autoToneMapAML);
 				}*/
 			 	Info(_log, "AmlogicGrabber AutoToneMap = %s", autoToneMapAML ? "ON" : "OFF");
+			}else{
+				Info(_log, "No tiene autoToneMapAML");
 			}
 #endif
 
