@@ -99,5 +99,5 @@ private:
 	QSemaphore	_semaphore;
 	int			_handle;
 	bool _autoToneMappingAML;
-	bool currentHDRState;
+	bool _currentHDRState;
 };
