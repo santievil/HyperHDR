@@ -88,60 +88,8 @@ void AmlogicGrabber::resetVariables()
 	_videoDev = -1;
 	_usingAmlogic = false;
 	_messageShow = false;
-	//_autoToneMappingAML = false;
 	_currentHDRState = false;
 }
-
-/*QString AmlogicGrabber::GetSharedLut()
-{
-	char result[PATH_MAX];
-
-	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-	if (count < 0)
-	{
-		Debug(_log, "Readlink failed");
-		return "";
-	}
-
-	std::string appPath = std::string(result, (count > 0) ? count : 0);
-	std::size_t found = appPath.find_last_of("/\\");
-
-	QString   ret = QString("%1%2").arg(QString::fromStdString(appPath.substr(0, found))).arg("/../lut");
-	QFileInfo info(ret);
-
-	ret = info.absoluteFilePath();
-	Debug(_log, "LUT folder location: '{:s}'", (ret));
-	return ret;
-}
-
-void AmlogicGrabber::loadLutFile(PixelFormat color, bool silent)
-{
-	// load lut table
-	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
-	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
-	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
-	Grabber::loadLutFile((!silent) ? _log : nullptr, color, QList<QString>{fileName1, fileName2, fileName3});
-}
-
-void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
-{
-	if (_hdrToneMappingEnabled != mode || _lut.data() == nullptr)
-	{
-		_hdrToneMappingEnabled = mode;
-		if (_lut.data() != nullptr || !mode)
-		{
-			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
-		}
-		else
-			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
-
-		loadLutFile(PixelFormat::RGB24);
-		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
-	}
-	else
-		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
-}
-*/
 
 bool AmlogicGrabber::checkKodiHDRStatus()
 {
@@ -189,7 +137,6 @@ void AmlogicGrabber::loadLutFile()
 	QString fileName2 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName3 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
 	QList<QString> files({ fileName1, fileName2, fileName3 });
-	Info(_log, "Buscando LUT");
 
 #ifdef __linux__
 	QString fileName4 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
@@ -209,9 +156,6 @@ void AmlogicGrabber::loadLutFile()
 		files.prepend(userFile);
 		Info(_log, "Adding user LUT file for searching: {:s}", (userFile));
 	}
-	
-	Info(_log, "Rutas LUT {}", files.join(", ").toStdString());
-
 	LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
 }
 
@@ -220,21 +164,8 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 	if (_hdrToneMappingEnabled != mode)
 	{
 		_hdrToneMappingEnabled = mode;
-		if (!mode)
-		{
-			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
-		}
-		else
-			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
-
 		loadLutFile();
-		//loadLutFile(PixelFormat::RGB24);
-		//emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
-	else
-		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
-		
-	
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -445,18 +376,15 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
-						Info(_log, "_autoToneMappingAML value = {}", _autoToneMappingAML );
 						if (_autoToneMappingAML)
 						{
-							Info(_log, "Checkeando hdr");
 							_currentHDRState = checkKodiHDRStatus();
 							if (_currentHDRState)                  		
 								setHdrToneMappingEnabled(1);
 							else
 								setHdrToneMappingEnabled(0);
-						}else{
-							Info(_log, "No Checkea hdr");
-						}
+						}else
+							setHdrToneMappingEnabled(0);
 					}
 					grabFrameAmlogic();
 				}
@@ -589,16 +517,6 @@ bool AmlogicGrabber::grabFrameAmlogic()
 
 		_amlFrame.resize(_bytesToRead);
 
-		/*Info(
-			_log,
-			"Amlogic grab: width={} height={} linelen={} bytesToRead={}",
-			_width,
-			_height,
-			linelen,
-			_bytesToRead
-		);*/
-
-
 		if (_amlFrame.size() == 0) {
 			Error(_log, "Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
@@ -629,28 +547,6 @@ bool AmlogicGrabber::grabFrameAmlogic()
 						memcpy(_lastValidFrame.data(), _amlFrame.data(), _bytesToRead);
 					}
 
-					/*Debug(
-						_log,
-						"Apply LUT: frameSize={} expected={} strideWidth={} height={} lutSize={} hdrToneMapping={}",
-						_amlFrame.size(),
-						linelen * _height,
-						linelen / 3,
-						_height,
-						(_lut.data() != nullptr ? _lut.size() : 0),
-						getHdrToneMappingEnabled()
-					);*/
-
-
-					 // Aplicar LUT al frame completo (BGR888 con padding)
-					/*FrameDecoder::applyLUT(
-						static_cast<uint8_t*>(_amlFrame.data()),
-						linelen / 3,          // width REAL con padding
-						_height,
-						_lut.data(),
-						getHdrToneMappingEnabled()
-					);*/
-
-
 					processSystemFrameBGR(static_cast<uint8_t*>(_amlFrame.data()), linelen);
 					return true;
 				}
@@ -658,15 +554,6 @@ bool AmlogicGrabber::grabFrameAmlogic()
 				{					
 					if (_lastValidFrame.size() > 0)
 					{					
-						 // Aplicar LUT al frame completo (BGR888 con padding)
-						/*FrameDecoder::applyLUT(
-							static_cast<uint8_t*>(_amlFrame.data()),
-							linelen / 3,          // width REAL con padding
-							_height,
-							_lut.data(),
-							getHdrToneMappingEnabled()
-						);*/
-
 						processSystemFrameBGR(_lastValidFrame.data(), linelen);
 						return true;
 					}
