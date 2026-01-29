@@ -445,8 +445,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
-						//QThread::msleep(200);
-						Info(_log, "Grabbing Amlogic");
+						Info(_log, "_autoToneMappingAML value = {}", _autoToneMappingAML );
 						if (_autoToneMappingAML)
 						{
 							Info(_log, "Checkeando hdr");
