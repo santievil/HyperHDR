@@ -284,7 +284,7 @@
 			"type" : "boolean",
 			"format": "checkbox",
 			"required" : true,
-			"title" : "edt_conf_smooth_updateDelay_title",
+			"title" : "edt_aml_tonemap",
 			"default" : false,
 			"propertyOrder" : 63
 		}		

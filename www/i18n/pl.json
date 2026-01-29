@@ -1222,6 +1222,7 @@
   "edt_conf_monitor_nits_title": "Korekta jasności HDR",
   "edt_conf_monitor_nits_expl": "Docelowa jasność SDR używana do konwersji HDR na SDR. Jeśli wynosi 0, wyłącza sprzętową konwersję kolorów przy jednoczesnym zachowaniu przyspieszonego skalowania.",
   "edt_append_nits": "nits",
+  "edt_aml_tonemap": "Amlogic automatic tonemapping",
   "edt_conf_gen_disableOnLocked_title": "Wyłącz, gdy jest zablokowany",
   "edt_conf_gen_disableOnLocked_expl": "Wyłącz przetwarzanie, gdy użytkownik zablokuje system.",
   "edt_conf_gen_disableLedsStartup_title": "Wyłącz diody LED przy uruchomieniu",
