@@ -81,8 +81,8 @@ private:
 		float		  smoothingFactor;
 		float		  stiffness;
 		float		  damping;
-		float		  y_limit;
 		float		  updateDelayFrames;
+		float		  y_limit;
 	};
 
 	std::vector<std::unique_ptr<SmoothingConfig>> _configurations;
