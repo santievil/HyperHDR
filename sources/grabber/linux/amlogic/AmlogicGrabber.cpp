@@ -88,7 +88,7 @@ void AmlogicGrabber::resetVariables()
 	_videoDev = -1;
 	_usingAmlogic = false;
 	_messageShow = false;
-	_autoToneMappingAML = false;
+	//_autoToneMappingAML = false;
 	_currentHDRState = false;
 }
 
@@ -446,13 +446,17 @@ void AmlogicGrabber::grabFrame()
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
 						//QThread::msleep(200);
+						Info(_log, "Grabbing Amlogic");
 						if (_autoToneMappingAML)
 						{
+							Info(_log, "Checkeando hdr");
 							_currentHDRState = checkKodiHDRStatus();
 							if (_currentHDRState)                  		
 								setHdrToneMappingEnabled(1);
 							else
 								setHdrToneMappingEnabled(0);
+						}else{
+							Info(_log, "No Checkea hdr");
 						}
 					}
 					grabFrameAmlogic();
