@@ -76,7 +76,7 @@ AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurati
 
 void AmlogicGrabber::setAutoToneMappingAML(bool enabled)
 {
-    _autoToneMappingAML = enabled; // solo afecta a este grabber
+    _autoToneMappingAML = enabled;
     Info(_log, "AmlogicGrabber AutoToneMap = {}", _autoToneMappingAML  ? "ON" : "OFF");
 }
 
@@ -145,79 +145,30 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 
 bool AmlogicGrabber::checkKodiHDRStatus()
 {
-    const QString logPath = "/storage/.kodi/temp/kodi.log";
-    QFile logFile(logPath);
+	 const QString hdrStatusPath = "/sys/class/amhdmitx/amhdmitx0/hdmi_hdr_status";
+    QFile file(hdrStatusPath);
     
-    if (!logFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        Warning(_log, "No se pudo abrir kodi.log");
+        Debug(_log, "Cant open hdmi_hdr_status");
         return false;
     }
     
-    // Leer los últimos ~100KB del archivo
-    qint64 fileSize = logFile.size();
-    qint64 readSize = qMin(fileSize, (qint64)1000000);
+    QString status = file.readAll().trimmed();
+    file.close();
     
-    logFile.seek(fileSize - readSize);
-    QByteArray data = logFile.readAll();
-    logFile.close();
+    bool isHDR = !status.isEmpty() && !status.startsWith("SDR", Qt::CaseInsensitive);
     
-    QStringList lines = QString::fromUtf8(data).split('\n', Qt::SkipEmptyParts);
-    
-    Debug(_log, "Kodi log: Leyendo últimas {} líneas", lines.size());
-    
-    // NUEVO: Mostrar primera y última línea
-    if (!lines.isEmpty())
+    if (isHDR)
     {
-        Info(_log, "Kodi log: PRIMERA línea -> {}", lines.first().toStdString());
-        Info(_log, "Kodi log: ÚLTIMA línea -> {}", lines.last().toStdString());
+        Info(_log, "HDR detected: {}", status.toStdString());
+    }
+    else
+    {
+        Debug(_log, "SDR mode active");
     }
     
-    // Buscar si existe OnPlayMedia y hdr type
-    bool foundOnPlayMedia = false;
-    bool foundHdrType = false;
-    int onPlayMediaIndex = -1;
-    int hdrTypeIndex = -1;
-    
-    for (int i = lines.size() - 1; i >= 0; i--)
-    {
-        if (!foundHdrType && lines[i].contains("hdr type:"))
-        {
-            foundHdrType = true;
-            hdrTypeIndex = i;
-            Info(_log, "Kodi log: Encontrado 'hdr type:' en línea {} -> {}", i, 
-                 lines[i].mid(lines[i].indexOf("hdr type:")).left(50).toStdString());
-        }
-        
-        if (!foundOnPlayMedia && lines[i].contains("OnPlayMedia"))
-        {
-            foundOnPlayMedia = true;
-            onPlayMediaIndex = i;
-            Info(_log, "Kodi log: Encontrado 'OnPlayMedia' en línea {} -> {}", i,
-                 lines[i].mid(lines[i].indexOf("OnPlayMedia")).left(50).toStdString());
-        }
-        
-        if (foundHdrType && foundOnPlayMedia)
-            break;
-    }
-    
-    // Verificar orden
-    if (foundOnPlayMedia && foundHdrType)
-    {
-        Info(_log, "Kodi log: hdr type en línea {}, OnPlayMedia en línea {}", 
-             hdrTypeIndex, onPlayMediaIndex);
-        
-        if (hdrTypeIndex > onPlayMediaIndex)
-        {
-            Info(_log, "Kodi log: Estado HDR = ACTIVADO");
-            return true;
-        }
-    }
-    
-    Info(_log, "Kodi log: Estado HDR = DESACTIVADO (foundOnPlayMedia={}, foundHdrType={})", 
-         foundOnPlayMedia, foundHdrType);
-    
-    return false;
+    return isHDR;
 }
 
 QString AmlogicGrabber::GetSharedLut()
@@ -488,15 +439,21 @@ void AmlogicGrabber::grabFrame()
 				}
 
 				// Capture framel
-				if (_usingAmlogic) {
+				if (_usingAmlogic)
+				{
 					if (!_messageShow)
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
-						QThread::msleep(200);
-						_currentHDRState = checkKodiHDRStatus();                    		
-						setHdrToneMappingEnabled(1);
-						//loadLutFile();
+						//QThread::msleep(200);
+						if (_autoToneMappingAML)
+						{
+							_currentHDRState = checkKodiHDRStatus();
+							if (_currentHDRState)                  		
+								setHdrToneMappingEnabled(1);
+							else
+								setHdrToneMappingEnabled(0);
+						}
 					}
 					grabFrameAmlogic();
 				}
