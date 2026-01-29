@@ -22,6 +22,7 @@
 #include <infinite-color-engine/SharedOutputColors.h>
 #include <infinite-color-engine/InfiniteInterpolator.h>
 #include <utils/Logger.h>
+#include <deque>
 
 class HyperHdrInstance;
 
@@ -36,7 +37,8 @@ public:
 	bool isEnabled() const;
 
 	void incomingColors(std::vector<linalg::aliases::float3>&& nonlinearRgbColors);
-	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
+	//unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
+	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, double ledUpdateDelay_fr, bool pause);
 	void setCurrentSmoothingConfigParams(unsigned cfgID);
 	bool selectConfig(unsigned cfgId);
 	int getSuggestedInterval();
@@ -80,6 +82,7 @@ private:
 		float		  stiffness;
 		float		  damping;
 		float		  y_limit;
+		float		  updateDelayFrames;
 	};
 
 	std::vector<std::unique_ptr<SmoothingConfig>> _configurations;
@@ -92,4 +95,8 @@ private:
 	bool			_infoInput;
 	int				_coolDown;
 	long long		_lastSentFrame;
+
+	std::vector<std::deque<SharedOutputColors>> _frameDelayBuffers;
+	std::vector<float> _lastDelayFrames;
+	std::vector<std::deque<long long>> _frameDelayTimestamps;
 };

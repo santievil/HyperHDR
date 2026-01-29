@@ -184,15 +184,18 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 			.smoothingFactor = static_cast<float>(obj["smoothingFactor"].toDouble(0.1)),
 			.stiffness = static_cast<float>(obj["stiffness"].toDouble(200)),
 			.damping = static_cast<float>(obj["damping"].toDouble(26)),
+			.updateDelayFrames = static_cast<double>(obj["updateDelay"].toDouble(0.0)),
 			.y_limit = static_cast<float>(obj["y_limit"].toDouble())
 			}
 		);
 
 		const auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
 		Info(_log, "Updating user config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz)"
-			       ", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+			       //", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+				   ", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, updateDelayFrames: {:f}, y_limit: {:f}",
 					SMOOTHING_USER_CONFIG, (EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
-					cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
+					//cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
+					cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->updateDelayFrames, cfg->y_limit
 			);
 
 		if (_currentConfigId == SMOOTHING_USER_CONFIG)
@@ -240,7 +243,13 @@ void InfiniteSmoothing::updateLeds()
 	{
 		QMutexLocker locker(&_dataSynchro);
 		if (!isEnabled())
+		{
+			// Disable queues
+			if (_frameDelayBuffers.size() > _currentConfigId)
+				_frameDelayBuffers[_currentConfigId].clear();
+
 			return;
+		}
 
 		timeNow = InternalClock::now();
 		_interpolator->updateCurrentColors(timeNow);
@@ -262,8 +271,37 @@ void InfiniteSmoothing::updateLeds()
 
 	if (!nonlinearRgbColors->empty() && !finished)
 	{
+		float currentDelay = _configurations[_currentConfigId]->updateDelayFrames;
+
+		// Only queue if delay
+		if (currentDelay > 0.0f)
+		{
+			if (_frameDelayBuffers.size() <= _currentConfigId)
+			{
+				_frameDelayBuffers.resize(_currentConfigId + 1);
+			}
+			auto& buffer = _frameDelayBuffers[_currentConfigId];
+			buffer.push_back(nonlinearRgbColors);
+
+			if (buffer.size() <= static_cast<size_t>(currentDelay))
+				return;
+
+			nonlinearRgbColors = std::move(buffer.front());
+			buffer.pop_front();
+		}
+		else
+		{
+			if (_frameDelayBuffers.size() > _currentConfigId)
+				_frameDelayBuffers[_currentConfigId].clear();
+		}
+
 		_lastSentFrame = timeNow;
 		queueColors(std::move(nonlinearRgbColors));
+	}
+	else
+	{
+		if (_frameDelayBuffers.size() > _currentConfigId)
+			_frameDelayBuffers[_currentConfigId].clear();
 	}
 }
 
@@ -305,7 +343,8 @@ unsigned InfiniteSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequ
 	return static_cast<unsigned>(_configurations.size() - 1);
 }
 
-unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
+//unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
+unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, double ledUpdateDelay_fr, bool pause)
 {
 	int64_t interval =  (ledUpdateFrequency_hz > std::numeric_limits<double>::epsilon()) ? static_cast<int64_t>(1000.0 / ledUpdateFrequency_hz) : 10;
 	
@@ -354,13 +393,15 @@ bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 	const auto& cfg = _configurations[_currentConfigId];
 
 	Info(_log, "Selecting config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz). Smoothing is currently: {:s}"
-				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+				//", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, updateDelayFrames: {:f}, y_limit: {:f}",
 		_currentConfigId, (EnumSmoothingTypeToString(cfg->type)), (!cfg->pause) ? "true" : "false",
 		int(cfg->settlingTime),
 		int(cfg->updateInterval),
 		int(1000.0 / cfg->updateInterval),
 		(_enabled) ? "enabled" : "disabled",
-		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
+		//cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
+		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->updateDelayFrames, cfg->y_limit);
 
 	return result;
 }
