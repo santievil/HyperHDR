@@ -181,7 +181,7 @@ void AmlogicGrabber::uninit()
 	if (_initialized)
 	{
 		stop();
-		disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler);
+		disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &AmlogicGrabber::signalSetLutHandler);
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 
