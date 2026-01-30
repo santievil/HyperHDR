@@ -289,7 +289,7 @@ void LutCalibrator::notifyCalibrationMessage(QString message, bool started)
 	emit SignalLutCalibrationUpdated(report);
 }
 
-bool LutCalibrator::set1to1LUT()
+/*bool LutCalibrator::set1to1LUT()
 {
 	_lut.resize(LUT_FILE_SIZE);
 
@@ -303,6 +303,50 @@ bool LutCalibrator::set1to1LUT()
 					_lut.data()[ind_lutd] = y;
 					_lut.data()[ind_lutd + 1] = u;
 					_lut.data()[ind_lutd + 2] = v;
+				}
+
+		emit GlobalSignals::getInstance()->SignalSetLut(&_lut);
+		QThread::msleep(500);
+
+		return true;
+	}
+
+	return false;
+}*/
+
+bool LutCalibrator::set1to1LUT()
+{
+	_lut.resize(LUT_FILE_SIZE);
+
+	if (_lut.data() != nullptr)
+	{
+		// CONVERSIÓN RGB → YUV (BT.2020 para HDR)
+		// Los índices y/u/v en realidad son R/G/B cuando vienen de Amlogic
+		for (int y = 0; y < 256; y++)
+			for (int u = 0; u < 256; u++)
+				for (int v = 0; v < 256; v++)
+				{
+					uint32_t ind_lutd = LUT_INDEX(y, u, v);
+					
+					// Conversión RGB → YUV usando BT.2020 (HDR)
+					// y=R, u=G, v=B
+					float r = y / 255.0f;
+					float g = u / 255.0f;
+					float b = v / 255.0f;
+					
+					// Matriz BT.2020 RGB → YUV (limited range) BT.2020
+					/*int Y = static_cast<int>(16.0f + (0.2627f * y + 0.6780f * u + 0.0593f * v));
+					int U = static_cast<int>(128.0f + (-0.1396f * y - 0.3604f * u + 0.5000f * v));
+					int V = static_cast<int>(128.0f + (0.5000f * y - 0.4598f * u - 0.0402f * v));
+					*/
+					// Usar los coeficientes exactos de awawa-dev: BT.709
+					int Y = static_cast<int>(16.0f + (0.1826f * y + 0.6142f * u + 0.0620f * v));
+					int U = static_cast<int>(128.0f + (-0.1006f * y - 0.3386f * u + 0.4392f * v));
+					int V = static_cast<int>(128.0f + (0.4392f * y - 0.3989f * u - 0.0403f * v));
+					
+					_lut.data()[ind_lutd]     = std::clamp(Y, 16, 235);
+					_lut.data()[ind_lutd + 1] = std::clamp(U, 16, 240);
+					_lut.data()[ind_lutd + 2] = std::clamp(V, 16, 240);
 				}
 
 		emit GlobalSignals::getInstance()->SignalSetLut(&_lut);
