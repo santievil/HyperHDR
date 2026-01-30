@@ -328,12 +328,6 @@ bool LutCalibrator::set1to1LUT()
 				{
 					uint32_t ind_lutd = LUT_INDEX(y, u, v);
 					
-					// Conversión RGB → YUV usando BT.2020 (HDR)
-					// y=R, u=G, v=B
-					float r = y / 255.0f;
-					float g = u / 255.0f;
-					float b = v / 255.0f;
-					
 					// Matriz BT.2020 RGB → YUV (limited range) BT.2020
 					/*int Y = static_cast<int>(16.0f + (0.2627f * y + 0.6780f * u + 0.0593f * v));
 					int U = static_cast<int>(128.0f + (-0.1396f * y - 0.3604f * u + 0.5000f * v));

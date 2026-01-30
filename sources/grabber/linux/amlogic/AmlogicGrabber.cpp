@@ -156,7 +156,8 @@ void AmlogicGrabber::loadLutFile()
 		files.prepend(userFile);
 		Info(_log, "Adding user LUT file for searching: {:s}", (userFile));
 	}
-	LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
+	//LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
+	LutLoader::loadLutFile(_log, PixelFormat::YUYV, files);
 }
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
