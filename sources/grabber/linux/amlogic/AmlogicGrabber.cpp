@@ -156,8 +156,7 @@ void AmlogicGrabber::loadLutFile()
 		files.prepend(userFile);
 		Info(_log, "Adding user LUT file for searching: {:s}", (userFile));
 	}
-	//LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
-	LutLoader::loadLutFile(_log, PixelFormat::YUYV, files);
+	LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
 }
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
@@ -377,7 +376,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
-						if (_autoToneMappingAML)
+						/*if (_autoToneMappingAML)
 						{
 							_currentHDRState = checkKodiHDRStatus();
 							if (_currentHDRState)                  		
@@ -385,7 +384,7 @@ void AmlogicGrabber::grabFrame()
 							else
 								setHdrToneMappingEnabled(0);
 						}else
-							setHdrToneMappingEnabled(0);
+							setHdrToneMappingEnabled(0);*/
 					}
 					grabFrameAmlogic();
 				}
