@@ -73,7 +73,7 @@ AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurati
 
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &AmlogicGrabber::grabFrame);
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler, Qt::BlockingQueuedConnection);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &AmlogicGrabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
 	getDevices();
 }
 
@@ -398,7 +398,7 @@ void AmlogicGrabber::grabFrame()
 						Info(_log, "Grabbing Framebuffer");
 						_messageShow = true;
 						_currentHDRState = false;
-						setHdrToneMappingEnabled(0);
+						//setHdrToneMappingEnabled(0);
 					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow)
@@ -512,8 +512,8 @@ bool AmlogicGrabber::grabFrameAmlogic()
 	else
 	{
 		//Solo para testeo
-		_width = 1920;
-		_height = 1080;
+		//_width = 1920;
+		//_height = 1080;
 		_actualWidth = _width;
 		_actualHeight = _height;
 		int linelen = ((_width + 31) & ~31) * 3;
