@@ -58,6 +58,8 @@ public slots:
 
 	void setAutoToneMappingAML(bool enabled);
 
+	void signalSetLutHandler(MemoryBuffer<uint8_t>* lut);
+
 private:
 	QString GetSharedLut();
 

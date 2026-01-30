@@ -52,6 +52,9 @@
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 #include <image/MemoryBuffer.h>
 
+// util
+#include <utils/GlobalSignals.h>
+
 
 namespace {
 	const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
@@ -70,7 +73,7 @@ AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurati
 
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &AmlogicGrabber::grabFrame);
-
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler, Qt::BlockingQueuedConnection);
 	getDevices();
 }
 
@@ -178,6 +181,7 @@ void AmlogicGrabber::uninit()
 	if (_initialized)
 	{
 		stop();
+		disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler);
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 
@@ -654,4 +658,15 @@ bool AmlogicGrabber::isVideoPlayingAML()
 
 	}
 	return false;
+}
+
+void AmlogicGrabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
+{
+	if (lut != nullptr && _lut.size() >= lut->size())
+	{
+		memcpy(_lut.data(), lut->data(), lut->size());
+		Info(_log, "The byte array loaded into LUT");
+	}
+	else
+		Error(_log, "Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
 }
