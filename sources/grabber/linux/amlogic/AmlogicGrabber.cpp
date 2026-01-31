@@ -662,6 +662,14 @@ bool AmlogicGrabber::isVideoPlayingAML()
 
 void AmlogicGrabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 {
+	if (!lut){
+		Error(_log, "LUT not available");
+		return;
+	}
+        
+	if (_lut.size() != lut->size())
+        _lut.resize(lut->size());
+
 	if (lut != nullptr && _lut.size() >= lut->size())
 	{
 		memcpy(_lut.data(), lut->data(), lut->size());
