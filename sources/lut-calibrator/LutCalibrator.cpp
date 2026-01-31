@@ -351,6 +351,8 @@ bool LutCalibrator::set1to1LUT()
 {
     _lut.resize(LUT_FILE_SIZE);
 
+	Info(_log, "Entra set1to1LUT");
+
     if (_lut.data() != nullptr)
     {
         YuvConverter converter;
@@ -377,6 +379,7 @@ bool LutCalibrator::set1to1LUT()
         QThread::msleep(500);
         return true;
     }
+	Info(_log, "No tiene LUT");
     return false;
 }
 
@@ -520,7 +523,30 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	}*/
 
 	auto pixelFormat = image.getOriginFormat();
-	Info(_log, "Formato tratado: {}", static_cast<int>(image.getOriginFormat()));
+	//Info(_log, "Formato tratado: {}", static_cast<int>(image.getOriginFormat()));
+
+	// ========== NUEVO: Convertir RGB a YUV ==========
+    /*Image<ColorRgb> yuvImage(image.width(), image.height());
+    
+    for (unsigned int y = 0; y < image.height(); y++)
+        for (unsigned int x = 0; x < image.width(); x++)
+        {
+            const ColorRgb& rgb = image(x, y);
+            
+            // Convertir RGB [0-255] a YUV usando FULL range
+            const double3 scaledRgb = double3(rgb.red, rgb.green, rgb.blue) / 255.0;
+            const double3 yuv = _yuvConverter->toYuvBT709(
+                YuvConverter::COLOR_RANGE::FULL, 
+                scaledRgb
+            ) * 255.0;
+            
+            // Guardar YUV en estructura ColorRgb
+            // (confuso pero así funciona el código - los campos red/green/blue contienen Y/U/V)
+            yuvImage(x, y).red   = std::clamp((int)(yuv.x + 0.5), 0, 255);
+            yuvImage(x, y).green = std::clamp((int)(yuv.y + 0.5), 0, 255);
+            yuvImage(x, y).blue  = std::clamp((int)(yuv.z + 0.5), 0, 255);
+        }*/
+    // ================================================
 
 
 	int boardIndex = -1;
