@@ -421,7 +421,7 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 }*/
 
 //Esta es la buena
-void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 	int startX, int startY,
 	uint8_t* source, int _actualWidth, int _actualHeight,
 	int division, uint8_t* _lutBuffer, int lineSize)
@@ -453,29 +453,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 			// Aplicar LUT si existe
 			if (_lutBuffer != nullptr)
 			{
-				//Funciona para RGB-> LUT RGB
-				/*ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[2]);
-				memcpy(buffer, &_lutBuffer[ind_lutd], 3);*/
-
-				// Para Amlogic: convertir RGB a YUV primero
-				//uint8_t Y = std::clamp(16 + (0.1826 * buffer[0] + 0.6142 * buffer[1] + 0.0620 * buffer[2]), 16, 235);
-				//uint8_t U = std::clamp(128 + (-0.1006 * buffer[0] - 0.3386 * buffer[1] + 0.4392 * buffer[2]), 16, 240);
-				//uint8_t V = std::clamp(128 + (0.4392 * buffer[0] - 0.3989 * buffer[1] - 0.0403 * buffer[2]), 16, 240);
-
-
-				int Yaux = static_cast<int>(16.0 + (0.1826 * buffer[0] + 0.6142 * buffer[1] + 0.0620 * buffer[2]));
-				int Uaux = static_cast<int>(128.0 + (-0.1006 * buffer[0] - 0.3386 * buffer[1] + 0.4392 * buffer[2]));
-				int Vaux = static_cast<int>(128.0 + (0.4392 * buffer[0] - 0.3989 * buffer[1] - 0.0403 * buffer[2]));
-
-				uint8_t Y = static_cast<uint8_t>(std::clamp(Yaux, 16, 235));
-				uint8_t U = static_cast<uint8_t>(std::clamp(Uaux, 16, 240));
-				uint8_t V = static_cast<uint8_t>(std::clamp(Vaux, 16, 240));
-
-				// Buscar en LUT con índices YUV
-				ind_lutd = LUT_INDEX(Y, U, V);
+				ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[2]);
 				memcpy(buffer, &_lutBuffer[ind_lutd], 3);
-
-
 			}
 
 			// Copiar resultado a la línea de destino
@@ -484,72 +463,77 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 		}
 	}
 }
+*/
 
-/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
-    int startX, int startY,
-    uint8_t* source, int _actualWidth, int _actualHeight,
-    int division, uint8_t* _lutBuffer, int lineSize)
+void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+	int startX, int startY,
+	uint8_t* source, int _actualWidth, int _actualHeight,
+	int division, uint8_t* _lutBuffer, int lineSize)
 {
-    if (lineSize == 0)
-        lineSize = _actualWidth * 3;
+	uint32_t ind_lutd;
+	uint8_t buffer[8];
+	size_t divisionX = (size_t)division * 3;
 
-    uint8_t* yPlane = image.rawMem();                       // Plano Y
-    uint8_t* uvPlane = yPlane + targetSizeX * targetSizeY;  // Plano UV
+	if (lineSize == 0)
+		lineSize = _actualWidth * 3;
 
-    size_t divisionX = (size_t)division * 3;
+	for (int j = 0; j < targetSizeY; j++)
+	{
+		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+		uint8_t* dLine = image.rawMem() + (size_t)j * targetSizeX * 3;
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = source + (lineSource * lineSize) + ((size_t)startX * 3);
 
-    for (int j = 0; j < targetSizeY; j += 2)  // Bloques de 2 filas
-    {
-        size_t lineSource0 = std::min(startY + j * division, _actualHeight - 1);
-        size_t lineSource1 = std::min(startY + (j + 1) * division, _actualHeight - 1);
+		// Ajuste inicial para invertir BGR → RGB
+		sLine += 2;
 
-        uint8_t* sLine0 = source + lineSource0 * lineSize + startX * 3 + 2;  // BGR→RGB
-        uint8_t* sLine1 = source + lineSource1 * lineSize + startX * 3 + 2;
+		while (dLine < dLineEnd)
+		{
+			// BGR → RGB
+			buffer[0] = *sLine--; // R
+			buffer[1] = *sLine--; // G
+			buffer[2] = *sLine;   // B
+			sLine += divisionX + 2;
 
-        for (int i = 0; i < targetSizeX; i += 2)  // Bloques de 2 columnas
-        {
-            uint32_t sumU = 0, sumV = 0;
+			if (_lutBuffer != nullptr)
+			{
+				// RGB → YUV (BT.709 limited)
+				int Yaux = static_cast<int>(16.0  + (0.1826 * buffer[0] + 0.6142 * buffer[1] + 0.0620 * buffer[2]));
+				int Uaux = static_cast<int>(128.0 + (-0.1006 * buffer[0] - 0.3386 * buffer[1] + 0.4392 * buffer[2]));
+				int Vaux = static_cast<int>(128.0 + (0.4392 * buffer[0] - 0.3989 * buffer[1] - 0.0403 * buffer[2]));
 
-            for (int yOffset = 0; yOffset < 2; ++yOffset)
-            {
-                int jj = j + yOffset;
-                if (jj >= targetSizeY) continue;
+				uint8_t Y = static_cast<uint8_t>(std::clamp(Yaux, 16, 235));
+				uint8_t U = static_cast<uint8_t>(std::clamp(Uaux, 16, 240));
+				uint8_t V = static_cast<uint8_t>(std::clamp(Vaux, 16, 240));
 
-                uint8_t* sLineRow = (yOffset == 0) ? sLine0 : sLine1;
+				// LUT YUV → YUV (calibrador)
+				ind_lutd = LUT_INDEX(Y, U, V);
+				memcpy(buffer, &_lutBuffer[ind_lutd], 3);
 
-                for (int xOffset = 0; xOffset < 2; ++xOffset)
-                {
-                    int ii = i + xOffset;
-                    if (ii >= targetSizeX) continue;
+				// --- YUV → RGB (BT.709 limited) ---
+				uint8_t Yc = buffer[0];
+				uint8_t Uc = buffer[1];
+				uint8_t Vc = buffer[2];
 
-                    uint8_t* pixel = sLineRow + xOffset * divisionX;
-                    uint8_t R = *pixel--;
-                    uint8_t G = *pixel--;
-                    uint8_t B = *pixel;
+				int C = (int)Yc - 16;
+				int D = (int)Uc - 128;
+				int E = (int)Vc - 128;
 
-                    // YUV 4:2:0
-                    uint8_t Y = (uint8_t)((0.257 * R + 0.504 * G + 0.098 * B) + 16);
-                    uint8_t U = (uint8_t)((-0.148 * R - 0.291 * G + 0.439 * B) + 128);
-                    uint8_t V = (uint8_t)((0.439 * R - 0.368 * G - 0.071 * B) + 128);
+				int R = (298 * C + 459 * E + 128) >> 8;
+				int G = (298 * C -  55 * D - 136 * E + 128) >> 8;
+				int B = (298 * C + 541 * D + 128) >> 8;
 
-                    // Guardar Y
-                    yPlane[jj * targetSizeX + ii] = Y;
+				buffer[0] = static_cast<uint8_t>(std::clamp(R, 0, 255));
+				buffer[1] = static_cast<uint8_t>(std::clamp(G, 0, 255));
+				buffer[2] = static_cast<uint8_t>(std::clamp(B, 0, 255));
+			}
 
-                    // Acumular para UV promedio
-                    sumU += U;
-                    sumV += V;
-                }
-            }
-
-            // Guardar UV intercalado (un byte U y uno V para bloque 2x2)
-            int uvIndex = (j / 2) * targetSizeX + i;
-            uvPlane[uvIndex]     = (uint8_t)(sumU / 4);
-            uvPlane[uvIndex + 1] = (uint8_t)(sumV / 4);
-        }
-    }
-	image.setOriginFormat(PixelFormat::NV12);
-}*/
-
+			// Escribir RGB final
+			memcpy(dLine, buffer, 3);
+			dLine += 3;
+		}
+	}
+}
 
 
 void FrameDecoder::processSystemImageBGR16(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
