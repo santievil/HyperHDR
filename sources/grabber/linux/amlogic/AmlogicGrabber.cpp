@@ -167,7 +167,7 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 	if (_hdrToneMappingEnabled != mode)
 	{
 		_hdrToneMappingEnabled = mode;
-		If (!_lutBufferInit)
+		if (!_lutBufferInit)
 			loadLutFile();
 	}
 }
