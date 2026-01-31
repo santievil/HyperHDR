@@ -379,7 +379,6 @@ bool LutCalibrator::set1to1LUT()
         QThread::msleep(500);
         return true;
     }
-	Info(_log, "No tiene LUT");
     return false;
 }
 

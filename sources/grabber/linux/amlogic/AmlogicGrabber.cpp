@@ -167,7 +167,8 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 	if (_hdrToneMappingEnabled != mode)
 	{
 		_hdrToneMappingEnabled = mode;
-		loadLutFile();
+		If (!_lutBufferInit)
+			loadLutFile();
 	}
 }
 
@@ -673,8 +674,10 @@ void AmlogicGrabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 	if (lut != nullptr && _lut.size() >= lut->size())
 	{
 		memcpy(_lut.data(), lut->data(), lut->size());
-		Info(_log, "The byte array loaded into LUT");
+		_lutBufferInit = true;
+		_hdrToneMappingEnabled = 1;
+		Info(_log, "Amlogic The byte array loaded into LUT");
 	}
 	else
-		Error(_log, "Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+		Error(_log, "Vengo de Amlogic. Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
 }

@@ -994,7 +994,7 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 		Info(_log, "The byte array loaded into LUT");
 	}
 	else
-		Error(_log, "Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+		Error(_log, "Esto es de Grabber.cpp Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
 }
 
 void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec)
