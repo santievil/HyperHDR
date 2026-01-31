@@ -579,8 +579,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 // Aplicar LUT YUV → YUV
                 ind_lutd = LUT_INDEX(Yc, Uc, Vc);
                 uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
-                uint8_t U_lut = _lutBuffer[ind_lutd + 1];
-                uint8_t V_lut = _lutBuffer[ind_lutd + 2];
+                uint8_t U_lut = _lutBuffer[ind_lutd + 2]; //invertimos
+                uint8_t V_lut = _lutBuffer[ind_lutd + 1];
 
                 // YUV → RGB BT.709 limitada (inversa exacta)
                 int C = (int)Y_lut - 16;
