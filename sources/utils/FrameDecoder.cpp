@@ -559,7 +559,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
         while (dLine < dLineEnd)
         {
-            // BGR → RGB
+            // Leer BGR y convertir a RGB
             uint8_t R = *sLine--;
             uint8_t G = *sLine--;
             uint8_t B = *sLine;
@@ -567,29 +567,20 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
             if (_lutBuffer != nullptr)
             {
-                // RGB → YUV BT.709 limitada
-                int Y = static_cast<int>(16.0f + (0.1826f * R + 0.6142f * G + 0.0620f * B));
-                int U = static_cast<int>(128.0f + (-0.1006f * R - 0.3386f * G + 0.4392f * B));
-                int V = static_cast<int>(128.0f + (0.4392f * R - 0.3989f * G - 0.0403f * B));
-
-                uint8_t Yc = static_cast<uint8_t>(std::clamp(Y, 16, 235));
-                uint8_t Uc = static_cast<uint8_t>(std::clamp(U, 16, 240));
-                uint8_t Vc = static_cast<uint8_t>(std::clamp(V, 16, 240));
-
-                // Aplicar LUT YUV → YUV
-                ind_lutd = LUT_INDEX(Yc, Uc, Vc);
+                // --- INDEXAR LUT con RGB originales ---
+                ind_lutd = LUT_INDEX(R, G, B);
                 uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
-                uint8_t U_lut = _lutBuffer[ind_lutd + 2]; //invertimos
-                uint8_t V_lut = _lutBuffer[ind_lutd + 1];
+                uint8_t U_lut = _lutBuffer[ind_lutd + 1];
+                uint8_t V_lut = _lutBuffer[ind_lutd + 2];
 
-                // YUV → RGB BT.709 limitada (inversa exacta)
+                // --- CONVERTIR YUV → RGB BT.709 limitada ---
                 int C = (int)Y_lut - 16;
                 int D = (int)U_lut - 128;
                 int E = (int)V_lut - 128;
 
-                int Rf = static_cast<int>(std::clamp((1.164f * C + 1.793f * E), 0.0f, 255.0f));
-                int Gf = static_cast<int>(std::clamp((1.164f * C - 0.213f * D - 0.533f * E), 0.0f, 255.0f));
-                int Bf = static_cast<int>(std::clamp((1.164f * C + 2.112f * D), 0.0f, 255.0f));
+                int Rf = std::clamp(int(1.164f * C + 1.793f * E), 0, 255);
+                int Gf = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);
+                int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
                 buffer[0] = static_cast<uint8_t>(Rf);
                 buffer[1] = static_cast<uint8_t>(Gf);
@@ -597,6 +588,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
             }
             else
             {
+                // Sin LUT, solo RGB directo
                 buffer[0] = R;
                 buffer[1] = G;
                 buffer[2] = B;
@@ -608,6 +600,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
         }
     }
 }
+
 
 
 
