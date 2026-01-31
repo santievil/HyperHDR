@@ -380,7 +380,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
-						/*if (_autoToneMappingAML)
+						if (_autoToneMappingAML)
 						{
 							_currentHDRState = checkKodiHDRStatus();
 							if (_currentHDRState)                  		
@@ -388,7 +388,7 @@ void AmlogicGrabber::grabFrame()
 							else
 								setHdrToneMappingEnabled(0);
 						}else
-							setHdrToneMappingEnabled(0);*/
+							setHdrToneMappingEnabled(0);
 					}
 					grabFrameAmlogic();
 				}
@@ -398,7 +398,7 @@ void AmlogicGrabber::grabFrame()
 						Info(_log, "Grabbing Framebuffer");
 						_messageShow = true;
 						_currentHDRState = false;
-						//setHdrToneMappingEnabled(0);
+						setHdrToneMappingEnabled(0);
 					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow)
