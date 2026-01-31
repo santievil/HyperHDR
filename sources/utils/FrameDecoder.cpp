@@ -458,9 +458,9 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 				memcpy(buffer, &_lutBuffer[ind_lutd], 3);*/
 
 				// Para Amlogic: convertir RGB a YUV primero
-				uint8_t Y = clamp(16 + (0.1826 * buffer[0] + 0.6142 * buffer[1] + 0.0620 * buffer[2]), 16, 235);
-				uint8_t U = clamp(128 + (-0.1006 * buffer[0] - 0.3386 * buffer[1] + 0.4392 * buffer[2]), 16, 240);
-				uint8_t V = clamp(128 + (0.4392 * buffer[0] - 0.3989 * buffer[1] - 0.0403 * buffer[2]), 16, 240);
+				uint8_t Y = std::clamp(16 + (0.1826 * buffer[0] + 0.6142 * buffer[1] + 0.0620 * buffer[2]), 16, 235);
+				uint8_t U = std::clamp(128 + (-0.1006 * buffer[0] - 0.3386 * buffer[1] + 0.4392 * buffer[2]), 16, 240);
+				uint8_t V = std::clamp(128 + (0.4392 * buffer[0] - 0.3989 * buffer[1] - 0.0403 * buffer[2]), 16, 240);
 
 				// Buscar en LUT con índices YUV
 				ind_lutd = LUT_INDEX(Y, U, V);
