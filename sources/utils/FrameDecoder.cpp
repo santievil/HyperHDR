@@ -464,8 +464,8 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 	}
 }
 */
-
-void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+//Con esta sale azul
+/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 	int startX, int startY,
 	uint8_t* source, int _actualWidth, int _actualHeight,
 	int division, uint8_t* _lutBuffer, int lineSize)
@@ -533,7 +533,82 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 			dLine += 3;
 		}
 	}
+}*/
+
+void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+	int startX, int startY,
+	uint8_t* source, int _actualWidth, int _actualHeight,
+	int division, uint8_t* _lutBuffer, int lineSize)
+{
+	uint32_t ind_lutd;
+	uint8_t buffer[3]; // solo necesitamos 3
+	size_t divisionX = (size_t)division * 3;
+
+	if (lineSize == 0)
+		lineSize = _actualWidth * 3;
+
+	for (int j = 0; j < targetSizeY; j++)
+	{
+		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+		uint8_t* dLine = image.rawMem() + (size_t)j * targetSizeX * 3;
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = source + (lineSource * lineSize) + ((size_t)startX * 3);
+
+		// Ajuste inicial para invertir BGR → RGB
+		sLine += 2;
+
+		while (dLine < dLineEnd)
+		{
+			// BGR → RGB
+			uint8_t R = *sLine--;
+			uint8_t G = *sLine--;
+			uint8_t B = *sLine;
+			sLine += divisionX + 2;
+
+			if (_lutBuffer != nullptr)
+			{
+				// RGB → YUV (BT.709 limited)
+				int Y = static_cast<int>(16.0  + (0.1826 * R + 0.6142 * G + 0.0620 * B));
+				int U = static_cast<int>(128.0 + (-0.1006 * R - 0.3386 * G + 0.4392 * B));
+				int V = static_cast<int>(128.0 + (0.4392 * R - 0.3989 * G - 0.0403 * B));
+
+				uint8_t Yc = static_cast<uint8_t>(std::clamp(Y, 16, 235));
+				uint8_t Uc = static_cast<uint8_t>(std::clamp(U, 16, 240));
+				uint8_t Vc = static_cast<uint8_t>(std::clamp(V, 16, 240));
+
+				// LUT YUV → YUV
+				ind_lutd = LUT_INDEX(Yc, Uc, Vc);
+				uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
+				uint8_t U_lut = _lutBuffer[ind_lutd + 1];
+				uint8_t V_lut = _lutBuffer[ind_lutd + 2];
+
+				// YUV → RGB final (BT.709)
+				int C = (int)Y_lut - 16;
+				int D = (int)U_lut - 128;
+				int E = (int)V_lut - 128;
+
+				int Rf = (298 * C + 459 * E + 128) >> 8;
+				int Gf = (298 * C -  55 * D - 136 * E + 128) >> 8;
+				int Bf = (298 * C + 541 * D + 128) >> 8;
+
+				buffer[0] = static_cast<uint8_t>(std::clamp(Rf, 0, 255));
+				buffer[1] = static_cast<uint8_t>(std::clamp(Gf, 0, 255));
+				buffer[2] = static_cast<uint8_t>(std::clamp(Bf, 0, 255));
+			}
+			else
+			{
+				buffer[0] = R;
+				buffer[1] = G;
+				buffer[2] = B;
+			}
+
+			// Escribir RGB final
+			memcpy(dLine, buffer, 3);
+			dLine += 3;
+		}
+	}
 }
+
 
 
 void FrameDecoder::processSystemImageBGR16(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
