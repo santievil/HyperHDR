@@ -314,13 +314,13 @@ void LutCalibrator::notifyCalibrationMessage(QString message, bool started)
 	return false;
 }*/
 
-bool LutCalibrator::set1to1LUT()
+//Prueba 1
+/*bool LutCalibrator::set1to1LUT()
 {
 	_lut.resize(LUT_FILE_SIZE);
 
 	if (_lut.data() != nullptr)
 	{
-		// CONVERSIÓN RGB → YUV (BT.2020 para HDR)
 		// Los índices y/u/v en realidad son R/G/B cuando vienen de Amlogic
 		for (int y = 0; y < 256; y++)
 			for (int u = 0; u < 256; u++)
@@ -328,11 +328,6 @@ bool LutCalibrator::set1to1LUT()
 				{
 					uint32_t ind_lutd = LUT_INDEX(y, u, v);
 					
-					// Matriz BT.2020 RGB → YUV (limited range) BT.2020
-					/*int Y = static_cast<int>(16.0f + (0.2627f * y + 0.6780f * u + 0.0593f * v));
-					int U = static_cast<int>(128.0f + (-0.1396f * y - 0.3604f * u + 0.5000f * v));
-					int V = static_cast<int>(128.0f + (0.5000f * y - 0.4598f * u - 0.0402f * v));
-					*/
 					// Usar los coeficientes exactos de awawa-dev: BT.709
 					int Y = static_cast<int>(16.0f + (0.1826f * y + 0.6142f * u + 0.0620f * v));
 					int U = static_cast<int>(128.0f + (-0.1006f * y - 0.3386f * u + 0.4392f * v));
@@ -350,8 +345,40 @@ bool LutCalibrator::set1to1LUT()
 	}
 
 	return false;
-}
+}*/
 
+bool LutCalibrator::set1to1LUT()
+{
+    _lut.resize(LUT_FILE_SIZE);
+
+    if (_lut.data() != nullptr)
+    {
+        YuvConverter converter;
+        
+        for (int r = 0; r < 256; r++)
+            for (int g = 0; g < 256; g++)
+                for (int b = 0; b < 256; b++)
+                {
+                    uint32_t ind_lutd = LUT_INDEX(r, g, b);
+                    
+                    // EXACTAMENTE lo mismo que hace loadTestBoardAsYuv
+                    const double3 scaledRgb = double3(r, g, b) / 255.0;
+                    const double3 yuv = converter.toYuvBT709(
+                        YuvConverter::COLOR_RANGE::FULL, 
+                        scaledRgb
+                    ) * 255.0;
+                    
+                    _lut.data()[ind_lutd]     = std::clamp((int)(yuv.x + 0.5), 0, 255);
+                    _lut.data()[ind_lutd + 1] = std::clamp((int)(yuv.y + 0.5), 0, 255);
+                    _lut.data()[ind_lutd + 2] = std::clamp((int)(yuv.z + 0.5), 0, 255);
+                }
+
+        emit GlobalSignals::getInstance()->SignalSetLut(&_lut);
+        QThread::msleep(500);
+        return true;
+    }
+    return false;
+}
 
 void LutCalibrator::sendReport(const LoggerName& _log, QString report)
 {
