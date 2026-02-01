@@ -527,7 +527,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
                 
                 // LOG primeros 5 pixels
-                if (pixelsLogged < 5)
+                // LOG solo pixels NO-NEGROS (primeros 5)
+        		if (pixelsLogged < 10 && (R > 10 || G > 10 || B > 10))
                 {
                     Info(logger, "NORMAL Pixel {}: RGB[{},{},{}] → YUV[{},{},{}] → RGB[{},{},{}]", 
                          pixelsLogged, R, G, B, Y_lut, U_lut, V_lut, Rf, Gf, Bf);
@@ -594,8 +595,8 @@ void FrameDecoder::processSystemImageBGRCal(Image<ColorRgb>& image, int targetSi
                 uint8_t U_out = _lutBuffer[ind_lutd + 1];
                 uint8_t V_out = _lutBuffer[ind_lutd + 2];
                 
-                // LOG primeros 5 pixels
-                if (pixelsLogged < 5)
+                // LOG primeros 5 pixels no negros
+                if (pixelsLogged < 10 && (R > 10 || G > 10 || B > 10))
                 {
                     Info(logger, "CAL Pixel {}: RGB[{},{},{}] → YUV[{},{},{}] (NO reconversion)", 
                          pixelsLogged, R, G, B, Y_out, U_out, V_out);

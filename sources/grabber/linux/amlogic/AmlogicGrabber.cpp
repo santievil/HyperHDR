@@ -167,8 +167,8 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 	if (_hdrToneMappingEnabled != mode)
 	{
 		_hdrToneMappingEnabled = mode;
-		if (!_lutBufferInit)
-			loadLutFile();
+		//if (!_lutBufferInit)
+		loadLutFile();
 	}
 }
 
@@ -384,7 +384,7 @@ void AmlogicGrabber::grabFrame()
 						if (_autoToneMappingAML)
 						{
 							_currentHDRState = checkKodiHDRStatus();
-							if (_currentHDRState)                  		
+							if (_currentHDRState)                 		
 								setHdrToneMappingEnabled(1);
 							else
 								setHdrToneMappingEnabled(0);
