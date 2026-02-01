@@ -670,11 +670,6 @@ void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize, bool useLut)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	 // LOG CRÍTICO
-    bool willApplyLut = (_hdrToneMappingEnabled != 0 && _lutBufferInit);
-    Info(_log, "Grabber.cpp processSystemFrameBGR: willApplyLut={} (_hdrToneMappingEnabled={}, _lutBufferInit={})", 
-         willApplyLut, _hdrToneMappingEnabled, _lutBufferInit);
-
 	FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
 
 	if (_signalDetectionEnabled)
@@ -693,6 +688,11 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
 	//Info(_log, "Primeros bytes source: {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}", source[0], source[1], source[2], source[3], source[4], source[5]);
+
+	 // LOG CRÍTICO
+    bool willApplyLut = (_hdrToneMappingEnabled != 0 && _lutBufferInit);
+    Info(_log, "Grabber.cpp processSystemFrameBGR: willApplyLut={} (_hdrToneMappingEnabled={}, _lutBufferInit={})", 
+         willApplyLut, _hdrToneMappingEnabled, _lutBufferInit);
 
 	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 
