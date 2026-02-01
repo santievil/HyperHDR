@@ -567,7 +567,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
             if (_lutBuffer != nullptr)
             {
-				Info(_log, "ramedecoder.cpp processSystemImageBGR: Aplica LUT");
+				Info(_log, "Framedecoder.cpp processSystemImageBGR: Aplica LUT");
                 // --- INDEXAR LUT con RGB originales ---
                 ind_lutd = LUT_INDEX(R, G, B);
                 uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
@@ -583,6 +583,70 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Gf = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
+				if (R == 255 && G == 255 && B == 255)
+				{
+					Info(_log,
+						"LUT APPLY White idx=%u | "
+						"RGB_in=[%d,%d,%d] | "
+						"YUV_lut=[%d,%d,%d] | "
+						"C=%d D=%d E=%d | "
+						"RGB_out=[%d,%d,%d]",
+						ind_lutd,
+						R, G, B,
+						Y_lut, U_lut, V_lut,
+						C, D, E,
+						Rf, Gf, Bf
+					);	
+				}
+
+				if (R == 255 && G == 0 && B == 0)
+				{
+					Info(_log,
+						"LUT APPLY Red idx=%u | "
+						"RGB_in=[%d,%d,%d] | "
+						"YUV_lut=[%d,%d,%d] | "
+						"C=%d D=%d E=%d | "
+						"RGB_out=[%d,%d,%d]",
+						ind_lutd,
+						R, G, B,
+						Y_lut, U_lut, V_lut,
+						C, D, E,
+						Rf, Gf, Bf
+					);
+				}
+
+				if (R == 0 && G == 255 && B == 0)
+				{
+					Info(_log,
+						"LUT APPLY Green idx=%u | "
+						"RGB_in=[%d,%d,%d] | "
+						"YUV_lut=[%d,%d,%d] | "
+						"C=%d D=%d E=%d | "
+						"RGB_out=[%d,%d,%d]",
+						ind_lutd,
+						R, G, B,
+						Y_lut, U_lut, V_lut,
+						C, D, E,
+						Rf, Gf, Bf
+					);
+				}
+
+				if (R == 0 && G == 0 && B == 255)
+				{
+					Info(_log,
+						"LUT APPLY Blue idx=%u | "
+						"RGB_in=[%d,%d,%d] | "
+						"YUV_lut=[%d,%d,%d] | "
+						"C=%d D=%d E=%d | "
+						"RGB_out=[%d,%d,%d]",
+						ind_lutd,
+						R, G, B,
+						Y_lut, U_lut, V_lut,
+						C, D, E,
+						Rf, Gf, Bf
+					);
+				}
+
                 buffer[0] = static_cast<uint8_t>(Rf);
                 buffer[1] = static_cast<uint8_t>(Gf);
                 buffer[2] = static_cast<uint8_t>(Bf);
@@ -593,7 +657,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 buffer[0] = R;
                 buffer[1] = G;
                 buffer[2] = B;
-				Info(_log, "ramedecoder.cpp processSystemImageBGR: NO aplica LUT");
+				Info(_log, "Framedecoder.cpp processSystemImageBGR: NO aplica LUT");
             }
 
             // Escribir RGB final
