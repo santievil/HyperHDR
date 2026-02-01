@@ -597,98 +597,18 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
 				static int debugCount = 0;
-				if (debugCount < 10) {
-					Info(logger,
-						"LUT APPLY PIXEL idx=%u | "
-						"RGB_in=[%d,%d,%d] | "
-						"YUV_lut=[%d,%d,%d] | "
-						"C=%d D=%d E=%d | "
-						"RGB_out=[%d,%d,%d]",
-						ind_lutd,
-						R, G, B,
-						Y_lut, U_lut, V_lut,
-						C, D, E,
-						Rf, Gf, Bf
-					);
-					debugCount++;
-				}
-
-				static int whiteCount = 0;
-				auto approx = [](uint8_t val, uint8_t target) { return std::abs(int(val) - int(target)) <= 2; };
-				//if (whiteCount < 3 && R == 255 && G == 255 && B == 255)
-				if (whiteCount < 3 && approx(R,255) && approx(G,255) && approx(B,255))
-				{
-					Info(logger,
-						"LUT APPLY White idx=%u | "
-						"RGB_in=[%d,%d,%d] | "
-						"YUV_lut=[%d,%d,%d] | "
-						"C=%d D=%d E=%d | "
-						"RGB_out=[%d,%d,%d]",
-						ind_lutd,
-						R, G, B,
-						Y_lut, U_lut, V_lut,
-						C, D, E,
-						Rf, Gf, Bf
-					);
-					whiteCount++;
-				}
-
-				static int redCount = 0;
-				//if (redCount < 3 && R == 255 && G == 0 && B == 0)
-				if (redCount < 3 && approx(R,255) && approx(G,0) && approx(B,0))
-				{
-					Info(logger,
-						"LUT APPLY Red idx=%u | "
-						"RGB_in=[%d,%d,%d] | "
-						"YUV_lut=[%d,%d,%d] | "
-						"C=%d D=%d E=%d | "
-						"RGB_out=[%d,%d,%d]",
-						ind_lutd,
-						R, G, B,
-						Y_lut, U_lut, V_lut,
-						C, D, E,
-						Rf, Gf, Bf
-					);
-					redCount++;
-				}
-
-				static int greenCount = 0;
-				//if (greenCount < 3 && R == 0 && G == 255 && B == 0)
-				if (greenCount < 3 && approx(R,0) && approx(G,255) && approx(B,0))
-				{
-					Info(logger,
-						"LUT APPLY Green idx=%u | "
-						"RGB_in=[%d,%d,%d] | "
-						"YUV_lut=[%d,%d,%d] | "
-						"C=%d D=%d E=%d | "
-						"RGB_out=[%d,%d,%d]",
-						ind_lutd,
-						R, G, B,
-						Y_lut, U_lut, V_lut,
-						C, D, E,
-						Rf, Gf, Bf
-					);
-					greenCount++;
-				}
-
-				static int blueCount = 0;
-				//if (blueCount < 3 && R == 0 && G == 0 && B == 255)
-				if (blueCount < 3 && approx(R,0) && approx(G,255) && approx(B,255))
-				{
-					Info(logger,
-						"LUT APPLY Blue idx=%u | "
-						"RGB_in=[%d,%d,%d] | "
-						"YUV_lut=[%d,%d,%d] | "
-						"C=%d D=%d E=%d | "
-						"RGB_out=[%d,%d,%d]",
-						ind_lutd,
-						R, G, B,
-						Y_lut, U_lut, V_lut,
-						C, D, E,
-						Rf, Gf, Bf
-					);
-					blueCount++;
-				}
+				Info(logger,
+					"LUT APPLY PIXEL idx={} | "
+					"RGB_in=[{},{},{}] | "
+					"YUV_lut=[{},{},{}] | "
+					"C={} D={} E={} | "
+					"RGB_out=[{},{},{}]",
+					ind_lutd,
+					R, G, B,
+					Y_lut, U_lut, V_lut,
+					C, D, E,
+					Rf, Gf, Bf
+				);
 
                 buffer[0] = static_cast<uint8_t>(Rf);
                 buffer[1] = static_cast<uint8_t>(Gf);
