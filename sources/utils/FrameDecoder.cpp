@@ -544,14 +544,9 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
     uint8_t buffer[3];
     size_t divisionX = (size_t)division * 3;
 	LoggerName logger("FrameDecoder");
-
-	static bool logOnce = true;
-    if (logOnce)
-    {
-        Info(logger, "processSystemImageBGR called: _lutBuffer={}", 
-             (_lutBuffer != nullptr) ? "NOT NULL" : "NULL");
-        logOnce = false;
-    }
+	static uint64_t frameCounter = 0;
+	frameCounter++;
+	constexpr uint64_t LOG_EVERY_N_FRAMES = 50;
 
     if (lineSize == 0)
         lineSize = _actualWidth * 3;
@@ -565,6 +560,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
         // Ajuste inicial para invertir BGR → RGB
         sLine += 2;
+
+		bool isCenterPixel = (j == targetSizeY / 2) &&  ((dLine - image.rawMem()) / 3 == targetSizeX / 2);
 
         while (dLine < dLineEnd)
         {
@@ -596,21 +593,21 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Gf = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
-				static int debugCount = 0;
-				if (debugCount < 10) {
+				// --- LOG CADA N FRAMES, SOLO 1 PIXEL ---
+				if ((frameCounter % LOG_EVERY_N_FRAMES) == 0 && isCenterPixel)
+				{
 					Info(logger,
-						"LUT APPLY PIXEL idx={} | "
+						"LUT APPLY frame={} | "
 						"RGB_in=[{},{},{}] | "
 						"YUV_lut=[{},{},{}] | "
 						"C={} D={} E={} | "
 						"RGB_out=[{},{},{}]",
-						ind_lutd,
+						frameCounter,
 						R, G, B,
 						Y_lut, U_lut, V_lut,
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					debugCount++;
 				}
 
                 buffer[0] = static_cast<uint8_t>(Rf);
