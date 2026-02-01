@@ -567,7 +567,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
             if (_lutBuffer != nullptr)
             {
-				Info(_log, "Framedecoder.cpp processSystemImageBGR: Aplica LUT");
+				Info(logger, "Framedecoder.cpp processSystemImageBGR: Aplica LUT");
                 // --- INDEXAR LUT con RGB originales ---
                 ind_lutd = LUT_INDEX(R, G, B);
                 uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
@@ -585,7 +585,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
 				if (R == 255 && G == 255 && B == 255)
 				{
-					Info(_log,
+					Info(logger,
 						"LUT APPLY White idx=%u | "
 						"RGB_in=[%d,%d,%d] | "
 						"YUV_lut=[%d,%d,%d] | "
@@ -601,7 +601,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
 				if (R == 255 && G == 0 && B == 0)
 				{
-					Info(_log,
+					Info(logger,
 						"LUT APPLY Red idx=%u | "
 						"RGB_in=[%d,%d,%d] | "
 						"YUV_lut=[%d,%d,%d] | "
@@ -617,7 +617,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
 				if (R == 0 && G == 255 && B == 0)
 				{
-					Info(_log,
+					Info(logger,
 						"LUT APPLY Green idx=%u | "
 						"RGB_in=[%d,%d,%d] | "
 						"YUV_lut=[%d,%d,%d] | "
@@ -633,7 +633,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
 				if (R == 0 && G == 0 && B == 255)
 				{
-					Info(_log,
+					Info(logger,
 						"LUT APPLY Blue idx=%u | "
 						"RGB_in=[%d,%d,%d] | "
 						"YUV_lut=[%d,%d,%d] | "
@@ -657,7 +657,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 buffer[0] = R;
                 buffer[1] = G;
                 buffer[2] = B;
-				Info(_log, "Framedecoder.cpp processSystemImageBGR: NO aplica LUT");
+				Info(logger, "Framedecoder.cpp processSystemImageBGR: NO aplica LUT");
             }
 
             // Escribir RGB final
