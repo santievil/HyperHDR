@@ -544,9 +544,14 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
     uint8_t buffer[3];
     size_t divisionX = (size_t)division * 3;
 	LoggerName logger("FrameDecoder");
-	static uint64_t frameCounter = 0;
 
-	frameCounter++;
+	static bool logOnce = true;
+    if (logOnce)
+    {
+        Info(logger, "processSystemImageBGR called: _lutBuffer={}", 
+             (_lutBuffer != nullptr) ? "NOT NULL" : "NULL");
+        logOnce = false;
+    }
 
     if (lineSize == 0)
         lineSize = _actualWidth * 3;
@@ -571,8 +576,11 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
             if (_lutBuffer != nullptr)
             {
-				if ((frameCounter % 1000) == 0)
+				static bool loggedFirst = false;
+				if (!loggedFirst){
 					Info(logger, "Framedecoder.cpp processSystemImageBGR: Aplica LUT");
+					loggedFirst = true;
+				}
                 // --- INDEXAR LUT con RGB originales ---
                 ind_lutd = LUT_INDEX(R, G, B);
                 uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
@@ -588,7 +596,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Gf = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
-				if ((frameCounter % 1000) == 0 && R == 255 && G == 255 && B == 255)
+				static bool loggedWhite = false;
+				if (!loggedWhite && R == 255 && G == 255 && B == 255)
 				{
 					Info(logger,
 						"LUT APPLY White idx=%u | "
@@ -602,9 +611,11 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
+					loggedWhite = true;
 				}
 
-				if ((frameCounter % 1000) == 0 && R == 255 && G == 0 && B == 0)
+				static bool loggedRed = false;
+				if (!loggedRed && R == 255 && G == 0 && B == 0)
 				{
 					Info(logger,
 						"LUT APPLY Red idx=%u | "
@@ -618,9 +629,11 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
+					loggedRed = true;
 				}
 
-				if ((frameCounter % 1000) == 0 && R == 0 && G == 255 && B == 0)
+				static bool loggedGreen = false;
+				if (!loggedGreen && R == 0 && G == 255 && B == 0)
 				{
 					Info(logger,
 						"LUT APPLY Green idx=%u | "
@@ -634,9 +647,11 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
+					loggedGreen = true;
 				}
 
-				if ((frameCounter % 1000) == 0 && R == 0 && G == 0 && B == 255)
+				static bool loggedBlue = false;
+				if (!loggedBlue && R == 0 && G == 0 && B == 255)
 				{
 					Info(logger,
 						"LUT APPLY Blue idx=%u | "
@@ -650,7 +665,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					frameCounter = 0;
+					loggedBlue = true;
 				}
 
                 buffer[0] = static_cast<uint8_t>(Rf);
@@ -663,9 +678,10 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 buffer[0] = R;
                 buffer[1] = G;
                 buffer[2] = B;
-				if ((frameCounter % 1000) == 0){
+				static bool loggedNFirst = false;
+				if (!loggedNFirst){
 					Info(logger, "Framedecoder.cpp processSystemImageBGR: NO aplica LUT");
-					frameCounter = 0;
+					loggedNFirst = true;
 				}
             }
 
