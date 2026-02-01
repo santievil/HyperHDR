@@ -462,77 +462,6 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 			dLine += 3;
 		}
 	}
-}
-*/
-//Con esta sale azul
-/*void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
-	int startX, int startY,
-	uint8_t* source, int _actualWidth, int _actualHeight,
-	int division, uint8_t* _lutBuffer, int lineSize)
-{
-	uint32_t ind_lutd;
-	uint8_t buffer[8];
-	size_t divisionX = (size_t)division * 3;
-
-	if (lineSize == 0)
-		lineSize = _actualWidth * 3;
-
-	for (int j = 0; j < targetSizeY; j++)
-	{
-		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
-		uint8_t* dLine = image.rawMem() + (size_t)j * targetSizeX * 3;
-		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
-		uint8_t* sLine = source + (lineSource * lineSize) + ((size_t)startX * 3);
-
-		// Ajuste inicial para invertir BGR → RGB
-		sLine += 2;
-
-		while (dLine < dLineEnd)
-		{
-			// BGR → RGB
-			buffer[0] = *sLine--; // R
-			buffer[1] = *sLine--; // G
-			buffer[2] = *sLine;   // B
-			sLine += divisionX + 2;
-
-			if (_lutBuffer != nullptr)
-			{
-				// RGB → YUV (BT.709 limited)
-				int Yaux = static_cast<int>(16.0  + (0.1826 * buffer[0] + 0.6142 * buffer[1] + 0.0620 * buffer[2]));
-				int Uaux = static_cast<int>(128.0 + (-0.1006 * buffer[0] - 0.3386 * buffer[1] + 0.4392 * buffer[2]));
-				int Vaux = static_cast<int>(128.0 + (0.4392 * buffer[0] - 0.3989 * buffer[1] - 0.0403 * buffer[2]));
-
-				uint8_t Y = static_cast<uint8_t>(std::clamp(Yaux, 16, 235));
-				uint8_t U = static_cast<uint8_t>(std::clamp(Uaux, 16, 240));
-				uint8_t V = static_cast<uint8_t>(std::clamp(Vaux, 16, 240));
-
-				// LUT YUV → YUV (calibrador)
-				ind_lutd = LUT_INDEX(Y, U, V);
-				memcpy(buffer, &_lutBuffer[ind_lutd], 3);
-
-				// --- YUV → RGB (BT.709 limited) ---
-				uint8_t Yc = buffer[0];
-				uint8_t Uc = buffer[1];
-				uint8_t Vc = buffer[2];
-
-				int C = (int)Yc - 16;
-				int D = (int)Uc - 128;
-				int E = (int)Vc - 128;
-
-				int R = (298 * C + 459 * E + 128) >> 8;
-				int G = (298 * C -  55 * D - 136 * E + 128) >> 8;
-				int B = (298 * C + 541 * D + 128) >> 8;
-
-				buffer[0] = static_cast<uint8_t>(std::clamp(R, 0, 255));
-				buffer[1] = static_cast<uint8_t>(std::clamp(G, 0, 255));
-				buffer[2] = static_cast<uint8_t>(std::clamp(B, 0, 255));
-			}
-
-			// Escribir RGB final
-			memcpy(dLine, buffer, 3);
-			dLine += 3;
-		}
-	}
 }*/
 
 void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
@@ -541,12 +470,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
     int division, uint8_t* _lutBuffer, int lineSize)
 {
     uint32_t ind_lutd;
-    uint8_t buffer[3];
     size_t divisionX = (size_t)division * 3;
-	LoggerName logger("FrameDecoder");
-	static uint64_t frameCounter = 0;
-	frameCounter++;
-	constexpr uint64_t LOG_EVERY_N_FRAMES = 200;
+	LoggerName logger("FrameDecoderNORMAL");
 
     if (lineSize == 0)
         lineSize = _actualWidth * 3;
@@ -558,81 +483,134 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
         uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
         uint8_t* sLine = source + (lineSource * lineSize) + ((size_t)startX * 3);
 
-        // Ajuste inicial para invertir BGR → RGB
-        sLine += 2;
-
-        while (dLine < dLineEnd)
+        if (_lutBuffer == nullptr)
         {
-            // Leer BGR y convertir a RGB
-            uint8_t R = *sLine--;
-            uint8_t G = *sLine--;
-            uint8_t B = *sLine;
-            sLine += divisionX + 2;
-
-            if (_lutBuffer != nullptr)
+            // Sin LUT: copiar RGB directo
+            sLine += 2;
+            while (dLine < dLineEnd)
             {
-				static bool loggedFirst = false;
-				if (!loggedFirst){
-					Info(logger, "Framedecoder.cpp processSystemImageBGR: Aplica LUT");
-					loggedFirst = true;
-				}
-                // --- INDEXAR LUT con RGB originales ---
+                *dLine++ = *sLine--;
+                *dLine++ = *sLine--;
+                *dLine++ = *sLine;
+                sLine += divisionX + 2;
+            }
+        }
+        else
+        {
+            // Con LUT calibrada: RGB → YUV → RGB (corrección de color)
+            sLine += 2;
+
+			// LOG solo PRIMEROS 5 PIXELS de UN frame
+			static int pixelsLogged = 0;
+				
+
+            while (dLine < dLineEnd)
+            {
+                uint8_t R = *sLine--;
+                uint8_t G = *sLine--;
+                uint8_t B = *sLine;
+                sLine += divisionX + 2;
+                
+                // Aplicar LUT: RGB → YUV
                 ind_lutd = LUT_INDEX(R, G, B);
                 uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
                 uint8_t U_lut = _lutBuffer[ind_lutd + 1];
                 uint8_t V_lut = _lutBuffer[ind_lutd + 2];
-
-                // --- CONVERTIR YUV → RGB BT.709 limitada ---
+                
+                // Convertir YUV → RGB (BT.709 LIMITED)
                 int C = (int)Y_lut - 16;
                 int D = (int)U_lut - 128;
                 int E = (int)V_lut - 128;
 
-                int Rf = std::clamp(int(1.164f * C + 1.793f * E), 0, 255);
+				int Rf = std::clamp(int(1.164f * C + 1.793f * E), 0, 255);
                 int Gf = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
+                
+                // LOG primeros 5 pixels
+                if (pixelsLogged < 5)
+                {
+                    Info(logger, "NORMAL Pixel {}: RGB[{},{},{}] → YUV[{},{},{}] → RGB[{},{},{}]", 
+                         pixelsLogged, R, G, B, Y_lut, U_lut, V_lut, Rf, Gf, Bf);
+                    pixelsLogged++;
+                }
 
-				// --- LOG CADA N FRAMES, SOLO 1 PIXEL ---
-				if ((frameCounter % LOG_EVERY_N_FRAMES) == 0)
-				{
-					Info(logger,
-						"LUT APPLY frame={} | "
-						"RGB_in=[{},{},{}] | "
-						"YUV_lut=[{},{},{}] | "
-						"C={} D={} E={} | "
-						"RGB_out=[{},{},{}]",
-						frameCounter,
-						R, G, B,
-						Y_lut, U_lut, V_lut,
-						C, D, E,
-						Rf, Gf, Bf
-					);
-				}
-
-                buffer[0] = static_cast<uint8_t>(Rf);
-                buffer[1] = static_cast<uint8_t>(Gf);
-                buffer[2] = static_cast<uint8_t>(Bf);
+                *dLine++ = std::clamp(int(1.164f * C + 1.793f * E), 0, 255);        // R
+                *dLine++ = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);  // G
+                *dLine++ = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);        // B
             }
-            else
-            {
-                // Sin LUT, solo RGB directo
-                buffer[0] = R;
-                buffer[1] = G;
-                buffer[2] = B;
-				static bool loggedNFirst = false;
-				if (!loggedNFirst){
-					Info(logger, "Framedecoder.cpp processSystemImageBGR: NO aplica LUT");
-					loggedNFirst = true;
-				}
-            }
-
-            // Escribir RGB final
-            memcpy(dLine, buffer, 3);
-            dLine += 3;
         }
     }
 }
 
+void FrameDecoder::processSystemImageBGRCal(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+    int startX, int startY,
+    uint8_t* source, int _actualWidth, int _actualHeight,
+    int division, uint8_t* _lutBuffer, int lineSize)
+{
+    uint32_t ind_lutd;
+    size_t divisionX = (size_t)division * 3;
+	LoggerName logger("FrameDecoderCAL");
 
+
+    if (lineSize == 0)
+        lineSize = _actualWidth * 3;
+
+    for (int j = 0; j < targetSizeY; j++)
+    {
+        size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+        uint8_t* dLine = image.rawMem() + (size_t)j * targetSizeX * 3;
+        uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+        uint8_t* sLine = source + (lineSource * lineSize) + ((size_t)startX * 3);
+
+        if (_lutBuffer == nullptr)
+        {
+            // Sin LUT: copiar RGB directo (invertir BGR→RGB)
+            sLine += 2;
+            while (dLine < dLineEnd)
+            {
+                *dLine++ = *sLine--;  // R
+                *dLine++ = *sLine--;  // G
+                *dLine++ = *sLine;    // B
+                sLine += divisionX + 2;
+            }
+        }
+        else
+        {
+            // Con LUT: RGB→YUV (NO reconvertir a RGB)
+            sLine += 2;
+			static int pixelsLogged = 0;
+
+            while (dLine < dLineEnd)
+            {
+                uint8_t R = *sLine--;
+                uint8_t G = *sLine--;
+                uint8_t B = *sLine;
+                sLine += divisionX + 2;
+                
+                // Aplicar LUT: RGB → YUV
+                ind_lutd = LUT_INDEX(R, G, B);
+
+				uint8_t Y_out = _lutBuffer[ind_lutd + 0];
+                uint8_t U_out = _lutBuffer[ind_lutd + 1];
+                uint8_t V_out = _lutBuffer[ind_lutd + 2];
+                
+                // LOG primeros 5 pixels
+                if (pixelsLogged < 5)
+                {
+                    Info(logger, "CAL Pixel {}: RGB[{},{},{}] → YUV[{},{},{}] (NO reconversion)", 
+                         pixelsLogged, R, G, B, Y_out, U_out, V_out);
+                    pixelsLogged++;
+                }
+                
+                // IMPORTANTE: Pasar YUV directamente (NO reconvertir a RGB)
+                // parseBoard() espera YUV en los campos R,G,B
+                *dLine++ = _lutBuffer[ind_lutd + 0];  // Y → campo R
+                *dLine++ = _lutBuffer[ind_lutd + 1];  // U → campo G
+                *dLine++ = _lutBuffer[ind_lutd + 2];  // V → campo B
+            }
+        }
+    }
+}
 
 
 
