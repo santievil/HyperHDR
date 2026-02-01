@@ -596,8 +596,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Gf = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
-				static bool loggedWhite = false;
-				if (!loggedWhite && R == 255 && G == 255 && B == 255)
+				static int whiteCount = 0;
+				if (whiteCount < 3 && R == 255 && G == 255 && B == 255)
 				{
 					Info(logger,
 						"LUT APPLY White idx=%u | "
@@ -611,11 +611,11 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					loggedWhite = true;
+					whiteCount++;
 				}
 
-				static bool loggedRed = false;
-				if (!loggedRed && R == 255 && G == 0 && B == 0)
+				static int redCount = 0;
+				if (redCount < 3 && R == 255 && G == 0 && B == 0)
 				{
 					Info(logger,
 						"LUT APPLY Red idx=%u | "
@@ -629,11 +629,11 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					loggedRed = true;
+					redCount++;
 				}
 
-				static bool loggedGreen = false;
-				if (!loggedGreen && R == 0 && G == 255 && B == 0)
+				static int greenCount = 0;
+				if (greenCount < 3 && R == 0 && G == 255 && B == 0)
 				{
 					Info(logger,
 						"LUT APPLY Green idx=%u | "
@@ -647,11 +647,11 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					loggedGreen = true;
+					greenCount++;
 				}
 
-				static bool loggedBlue = false;
-				if (!loggedBlue && R == 0 && G == 0 && B == 255)
+				static int blueCount = 0;
+				if (blueCount < 3 && R == 0 && G == 0 && B == 255)
 				{
 					Info(logger,
 						"LUT APPLY Blue idx=%u | "
@@ -665,7 +665,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					loggedBlue = true;
+					blueCount++;
 				}
 
                 buffer[0] = static_cast<uint8_t>(Rf);
