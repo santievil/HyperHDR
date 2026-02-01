@@ -567,6 +567,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 
             if (_lutBuffer != nullptr)
             {
+				Info(_log, "ramedecoder.cpp processSystemImageBGR: Aplica LUT");
                 // --- INDEXAR LUT con RGB originales ---
                 ind_lutd = LUT_INDEX(R, G, B);
                 uint8_t Y_lut = _lutBuffer[ind_lutd + 0];
@@ -592,6 +593,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 buffer[0] = R;
                 buffer[1] = G;
                 buffer[2] = B;
+				Info(_log, "ramedecoder.cpp processSystemImageBGR: NO aplica LUT");
             }
 
             // Escribir RGB final
