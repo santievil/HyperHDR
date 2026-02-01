@@ -543,6 +543,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
     uint32_t ind_lutd;
     uint8_t buffer[3];
     size_t divisionX = (size_t)division * 3;
+	LoggerName logger("FrameDecoder");
 
     if (lineSize == 0)
         lineSize = _actualWidth * 3;
