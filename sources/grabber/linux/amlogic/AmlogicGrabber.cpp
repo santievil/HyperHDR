@@ -677,6 +677,7 @@ void AmlogicGrabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 		_lutBufferInit = true;
 		_hdrToneMappingEnabled = 1;
 		Info(_log, "Amlogic The byte array loaded into LUT");
+		calibrationData.isRunning = true;
 	}
 	else
 		Error(_log, "Vengo de Amlogic. Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
