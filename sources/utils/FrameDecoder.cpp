@@ -602,7 +602,6 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					frameCounter = 0;
 				}
 
 				if ((frameCounter % 1000) == 0 R == 255 && G == 0 && B == 0)
@@ -619,7 +618,6 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					frameCounter = 0;
 				}
 
 				if ((frameCounter % 1000) == 0 R == 0 && G == 255 && B == 0)
@@ -636,7 +634,6 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 						C, D, E,
 						Rf, Gf, Bf
 					);
-					frameCounter = 0;
 				}
 
 				if ((frameCounter % 1000) == 0 R == 0 && G == 0 && B == 255)
