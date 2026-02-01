@@ -546,7 +546,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 	LoggerName logger("FrameDecoder");
 	static uint64_t frameCounter = 0;
 	frameCounter++;
-	constexpr uint64_t LOG_EVERY_N_FRAMES = 60;
+	constexpr uint64_t LOG_EVERY_N_FRAMES = 200;
 
     if (lineSize == 0)
         lineSize = _actualWidth * 3;
