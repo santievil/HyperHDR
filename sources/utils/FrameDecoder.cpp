@@ -597,18 +597,21 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
 				static int debugCount = 0;
-				Info(logger,
-					"LUT APPLY PIXEL idx={} | "
-					"RGB_in=[{},{},{}] | "
-					"YUV_lut=[{},{},{}] | "
-					"C={} D={} E={} | "
-					"RGB_out=[{},{},{}]",
-					ind_lutd,
-					R, G, B,
-					Y_lut, U_lut, V_lut,
-					C, D, E,
-					Rf, Gf, Bf
-				);
+				if (debugCount < 10) {
+					Info(logger,
+						"LUT APPLY PIXEL idx={} | "
+						"RGB_in=[{},{},{}] | "
+						"YUV_lut=[{},{},{}] | "
+						"C={} D={} E={} | "
+						"RGB_out=[{},{},{}]",
+						ind_lutd,
+						R, G, B,
+						Y_lut, U_lut, V_lut,
+						C, D, E,
+						Rf, Gf, Bf
+					);
+					debugCount++;
+				}
 
                 buffer[0] = static_cast<uint8_t>(Rf);
                 buffer[1] = static_cast<uint8_t>(Gf);
