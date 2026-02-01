@@ -37,7 +37,6 @@
 #include <numbers>
 
 template<bool Quarter, bool UseToneMapping, bool UseAutomaticToneMapping>
-static uint64_t frameCounter = 0;
 void FrameDecoder::processImageVector(
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
@@ -545,6 +544,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
     uint8_t buffer[3];
     size_t divisionX = (size_t)division * 3;
 	LoggerName logger("FrameDecoder");
+	static uint64_t frameCounter = 0;
 
 	frameCounter++;
 
