@@ -670,6 +670,11 @@ void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize, bool useLut)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
+	 // LOG CRÍTICO
+    bool willApplyLut = (_hdrToneMappingEnabled != 0 && _lutBufferInit);
+    Info(_log, "Grabber.cpp processSystemFrameBGR: willApplyLut={} (_hdrToneMappingEnabled={}, _lutBufferInit={})", 
+         willApplyLut, _hdrToneMappingEnabled, _lutBufferInit);
+
 	FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
 
 	if (_signalDetectionEnabled)
@@ -988,6 +993,16 @@ bool Grabber::isInitialized()
 
 void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 {
+	//prueba
+	if (lut == nullptr || lut->size() == 0)
+        return;
+
+    if (_lut.size() != lut->size())
+    {
+        Info(_log, "Grabber.cpp resizing LUT from {} to {}", _lut.size(), lut->size());
+        _lut.resize(lut->size());
+    }
+
 	if (lut != nullptr && _lut.size() >= lut->size())
 	{
 		memcpy(_lut.data(), lut->data(), lut->size());
