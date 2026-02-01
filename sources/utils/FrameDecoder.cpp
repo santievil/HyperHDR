@@ -588,7 +588,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
                 int Gf = std::clamp(int(1.164f * C - 0.213f * D - 0.533f * E), 0, 255);
                 int Bf = std::clamp(int(1.164f * C + 2.112f * D), 0, 255);
 
-				if ((frameCounter % 1000) == 0 R == 255 && G == 255 && B == 255)
+				if ((frameCounter % 1000) == 0 && R == 255 && G == 255 && B == 255)
 				{
 					Info(logger,
 						"LUT APPLY White idx=%u | "
@@ -604,7 +604,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 					);
 				}
 
-				if ((frameCounter % 1000) == 0 R == 255 && G == 0 && B == 0)
+				if ((frameCounter % 1000) == 0 && R == 255 && G == 0 && B == 0)
 				{
 					Info(logger,
 						"LUT APPLY Red idx=%u | "
@@ -620,7 +620,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 					);
 				}
 
-				if ((frameCounter % 1000) == 0 R == 0 && G == 255 && B == 0)
+				if ((frameCounter % 1000) == 0 && R == 0 && G == 255 && B == 0)
 				{
 					Info(logger,
 						"LUT APPLY Green idx=%u | "
@@ -636,7 +636,7 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 					);
 				}
 
-				if ((frameCounter % 1000) == 0 R == 0 && G == 0 && B == 255)
+				if ((frameCounter % 1000) == 0 && R == 0 && G == 0 && B == 255)
 				{
 					Info(logger,
 						"LUT APPLY Blue idx=%u | "
