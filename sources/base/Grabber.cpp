@@ -689,6 +689,7 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 
 
 	//FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	Info(_log, "Grabber.cpp Esta calibrandow {:s} (isCalibrating: {:s})", enable ? "enabled" : "disabled", isCalibrating() ? "true" : "false");
 
 	if (isCalibrating())
 	{
