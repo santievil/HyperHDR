@@ -130,6 +130,7 @@ LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp,
 	_lchCorrection = lchCorrection;
 	_defaultComp = defaultComp;
 	_forcedExit = false;
+	_isCalibratingLut = false;
 }
 
 LutCalibrator::~LutCalibrator()
@@ -163,6 +164,7 @@ static void unpackP010(double3& yuv)
 void LutCalibrator::cancelCalibrationSafe()
 {
 	_forcedExit = true;
+	_isCalibratingLut = false;
 	AUTO_CALL_0(this, stopHandler);
 }
 
@@ -377,7 +379,7 @@ bool LutCalibrator::set1to1LUT()
 					 // LOG para White [255, 255, 255]
                     if (r == 255 && g == 255 && b == 255)
                     {
-                        Info(_log, "LUT[255,255,255] = Y:{:d} U:{:d} V:{:d}", 
+                        Info(_log, "LUT White[255,255,255] = Y:{:d} U:{:d} V:{:d}", 
                              _lut.data()[ind_lutd], 
                              _lut.data()[ind_lutd + 1], 
                              _lut.data()[ind_lutd + 2]);
@@ -459,7 +461,7 @@ void LutCalibrator::startHandler()
 		error("Could not allocated memory (~50MB) for internal temporary buffer. Stopped.");
 		return;
 	}				
-
+	_isCalibratingLut = true;
 	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
 		notifyCalibrationMessage("Using video grabber as a source<br/>Waiting for first captured test board..");
@@ -1975,4 +1977,9 @@ void DefaultLutCreatorWorker::run()
 	{
 		Info(log, "The default LUT has been created: {:s}/lut_lin_tables.3d", (path));
 	}
+}
+
+bool LutCalibrator::isCalibratingLut()
+{
+	return _isCalibratingLut;
 }

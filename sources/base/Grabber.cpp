@@ -689,9 +689,9 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 
 
 	//FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
-	Info(_log, "Grabber: Checking state... Is Calibrating: {}", isCalibrating() ? "Yes" : "No");
+	Info(_log, "Grabber: Checking state... Is Calibrating: {}", isCalibratingLut() ? "Yes" : "No");
 
-	if (isCalibrating())
+	if (isCalibratingLut())
 	{
 		FrameDecoder::processSystemImageBGRCal(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 	}
