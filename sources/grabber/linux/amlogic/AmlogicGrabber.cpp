@@ -677,7 +677,7 @@ void AmlogicGrabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 		_lutBufferInit = true;
 		_hdrToneMappingEnabled = 1;
 		Info(_log, "Amlogic The byte array loaded into LUT");
-		Info(_log, "AmlogicGrabber: Checking state... Is Calibrating: {}", isCalibratingLut() ? "Yes" : "No");
+		//Info(_log, "AmlogicGrabber: Checking state... Is Calibrating: {}", isCalibratingLut() ? "Yes" : "No");
 
 	}
 	else
