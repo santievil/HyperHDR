@@ -33,6 +33,8 @@
 #include <base/Grabber.h>
 #include <utils/GlobalSignals.h>
 
+#include <lut-calibrator/LutCalibrator.h>
+
 const QString Grabber::AUTO_SETTING = QString("auto");
 const int	  Grabber::AUTO_INPUT = -1;
 const int	  Grabber::AUTO_FPS = 0;
