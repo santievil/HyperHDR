@@ -351,7 +351,7 @@ bool LutCalibrator::set1to1LUT()
 {
     _lut.resize(LUT_FILE_SIZE);
 
-	Info(_log, "Entra set1to1LUT");
+	//Info(_log, "Entra set1to1LUT");
 
     if (_lut.data() != nullptr)
     {
@@ -375,7 +375,7 @@ bool LutCalibrator::set1to1LUT()
                     _lut.data()[ind_lutd + 2] = std::clamp((int)(yuv.z + 0.5), 0, 255);
 
 					 // LOG para White [255, 255, 255]
-                    if (r == 255 && g == 255 && b == 255)
+                    /*if (r == 255 && g == 255 && b == 255)
                     {
                         Info(_log, "LUT White[255,255,255] = Y:{:d} U:{:d} V:{:d}", 
                              _lut.data()[ind_lutd], 
@@ -402,7 +402,7 @@ bool LutCalibrator::set1to1LUT()
                              _lut.data()[ind_lutd], 
                              _lut.data()[ind_lutd + 1], 
                              _lut.data()[ind_lutd + 2]);
-                    }
+                    }*/
                 }
 
         emit GlobalSignals::getInstance()->SignalSetLut(&_lut);

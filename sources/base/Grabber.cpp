@@ -82,13 +82,13 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _synchro(1)
 {
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
-	_isCalibratingLut = false;
+	//_isCalibratingLut = false;
 }
 
 Grabber::~Grabber()
 {
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler);
-	_isCalibratingLut = false;
+	//_isCalibratingLut = false;
 }
 
 void Grabber::pleaseWaitForLut(bool videoGrabber)
@@ -691,16 +691,19 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 
 
 	//FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
-	Info(_log, "Grabber: Checking state... Is Calibrating: {}", _isCalibratingLut ? "Yes" : "No");
+	//Info(_log, "Grabber: Checking state... Is CalibratingLut: {}", _isCalibratingLut ? "Yes" : "No");
 
-	if (_isCalibratingLut)
+	/*if (_isCalibratingLut)
 	{
 		FrameDecoder::processSystemImageBGRCal(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 	}
 	else
 	{
 		FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
-	}
+	}*/
+
+	FrameDecoder::processSystemImageBGRCal(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+
 
 	if (_signalDetectionEnabled)
 	{
@@ -1008,7 +1011,7 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 	{
 		memcpy(_lut.data(), lut->data(), lut->size());
 		Info(_log, "The byte array loaded into LUT");
-		_isCalibratingLut = true;
+		//_isCalibratingLut = true;
 	}
 	else
 		Error(_log, "Esto es de Grabber.cpp Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
