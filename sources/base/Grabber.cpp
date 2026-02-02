@@ -33,8 +33,6 @@
 #include <base/Grabber.h>
 #include <utils/GlobalSignals.h>
 
-#include <lut-calibrator/LutCalibrator.h>
-
 const QString Grabber::AUTO_SETTING = QString("auto");
 const int	  Grabber::AUTO_INPUT = -1;
 const int	  Grabber::AUTO_FPS = 0;
@@ -84,11 +82,13 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _synchro(1)
 {
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
+	_isCalibratingLut = false;
 }
 
 Grabber::~Grabber()
 {
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler);
+	_isCalibratingLut = false;
 }
 
 void Grabber::pleaseWaitForLut(bool videoGrabber)
@@ -691,9 +691,9 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 
 
 	//FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
-	Info(_log, "Grabber: Checking state... Is Calibrating: {}", isCalibratingLut() ? "Yes" : "No");
+	Info(_log, "Grabber: Checking state... Is Calibrating: {}", _isCalibratingLut ? "Yes" : "No");
 
-	if (isCalibratingLut())
+	if (_isCalibratingLut)
 	{
 		FrameDecoder::processSystemImageBGRCal(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 	}
@@ -1008,6 +1008,7 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 	{
 		memcpy(_lut.data(), lut->data(), lut->size());
 		Info(_log, "The byte array loaded into LUT");
+		_isCalibratingLut = true;
 	}
 	else
 		Error(_log, "Esto es de Grabber.cpp Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);

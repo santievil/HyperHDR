@@ -280,6 +280,7 @@ protected:
 	bool		_signalAutoDetectionEnabled;
 	QSemaphore  _synchro;
 	AutomaticToneMapping _automaticToneMapping;
+	bool		_isCalibratingLut;
 };
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2);

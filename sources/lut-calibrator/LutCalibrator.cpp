@@ -130,7 +130,6 @@ LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp,
 	_lchCorrection = lchCorrection;
 	_defaultComp = defaultComp;
 	_forcedExit = false;
-	_isCalibratingLut = false;
 }
 
 LutCalibrator::~LutCalibrator()
@@ -164,7 +163,6 @@ static void unpackP010(double3& yuv)
 void LutCalibrator::cancelCalibrationSafe()
 {
 	_forcedExit = true;
-	_isCalibratingLut = false;
 	AUTO_CALL_0(this, stopHandler);
 }
 
@@ -461,7 +459,7 @@ void LutCalibrator::startHandler()
 		error("Could not allocated memory (~50MB) for internal temporary buffer. Stopped.");
 		return;
 	}				
-	_isCalibratingLut = true;
+
 	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
 		notifyCalibrationMessage("Using video grabber as a source<br/>Waiting for first captured test board..");
@@ -1977,9 +1975,4 @@ void DefaultLutCreatorWorker::run()
 	{
 		Info(log, "The default LUT has been created: {:s}/lut_lin_tables.3d", (path));
 	}
-}
-
-bool LutCalibrator::isCalibratingLut()
-{
-	return _isCalibratingLut;
 }

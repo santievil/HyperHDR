@@ -86,7 +86,6 @@ public slots:
 	void calibrate();
 	void cancelCalibrationSafe();
 	void notifyCalibrationMessage(QString message, bool started = false);
-	bool isCalibratingLut();
 
 private:
 	void fineTune(bool precise);
@@ -110,5 +109,4 @@ private:
 	bool	_lchCorrection;
 	hyperhdr::Components _defaultComp;
 	std::atomic<bool> _forcedExit;
-	bool	_isCalibratingLut;
 };
