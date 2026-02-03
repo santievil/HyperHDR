@@ -119,7 +119,8 @@ bool AmlogicGrabber::checkKodiHDRStatus()
         Debug(_log, "SDR mode active");
     }
     
-    return isHDR;
+    //return isHDR;
+	return true;
 }
 
 QString AmlogicGrabber::GetSharedLut()
