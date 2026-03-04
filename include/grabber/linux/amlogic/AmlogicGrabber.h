@@ -86,6 +86,7 @@ private:
 	bool grabFrameAmlogic();
 	bool grabFrameFramebuffer();
 	bool checkKodiHDRStatus();
+	bool getAspectRatio(int& arW, int& arH);
 
 	MemoryBuffer<uint8_t> _amlFrame;
 	MemoryBuffer<uint8_t> _lastValidFrame;

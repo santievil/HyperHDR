@@ -94,6 +94,33 @@ void AmlogicGrabber::resetVariables()
 	_currentHDRState = false;
 }
 
+bool AmlogicGrabber::getAspectRatio(int& arW, int& arH)
+{
+    QFile f("/sys/class/display/mode");
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        Debug(_log, "Cant open display mode status");
+        return false;
+    }
+
+    QString m = f.readAll().trimmed();
+    f.close();
+
+    int w = 0, h = 0;
+
+    if (m.contains("x"))
+        sscanf(m.toStdString().c_str(), "%dx%d", &w, &h);
+    else
+        sscanf(m.toStdString().c_str(), "%dp", &h), w = h * 16 / 9;
+
+    int a = w, b = h;
+    while (b) { int t = b; b = a % b; a = t; }
+
+    arW = w / a;
+    arH = h / a;
+    return true;
+}
+
 bool AmlogicGrabber::checkKodiHDRStatus()
 {
 	 const QString hdrStatusPath = "/sys/class/amhdmitx/amhdmitx0/hdmi_hdr_status";
@@ -385,12 +412,17 @@ void AmlogicGrabber::grabFrame()
 						if (_autoToneMappingAML)
 						{
 							_currentHDRState = checkKodiHDRStatus();
+							
 							if (_currentHDRState)                 		
 								setHdrToneMappingEnabled(1);
 							else
 								setHdrToneMappingEnabled(0);
 						}else
 							setHdrToneMappingEnabled(0);
+							
+						int w, h;
+							if (getAspectRatio(w, h))
+								 _height = (_width * h) / w;
 					}
 					grabFrameAmlogic();
 				}
