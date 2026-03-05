@@ -413,7 +413,8 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 		{
 			memcpy(&buffer, &sLine, 3);
 			sLine += divisionX;
-			ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
+			//ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
+			ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[2]);
 			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
 			dLine += 3;
 		}
