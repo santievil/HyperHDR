@@ -378,7 +378,7 @@ void AmlogicGrabber::grabFrame()
 						_messageShow = true;
 						if (_autoToneMappingAML)
 						{
-							_currentHDRState = checkKodiHDRStatus();
+							_currentHDRState = checkHDRStatus();
 							if (_currentHDRState)                  		
 								setHdrToneMappingEnabled(1);
 							else
