@@ -426,7 +426,7 @@ void FrameDecoder::processSystemImageBGRAML(Image<ColorRgb>& image, int targetSi
 	int division, uint8_t* _lutBuffer, int lineSize)
 {
 	uint32_t ind_lutd;
-	uint8_t buffer[8]; //why not 3?
+	uint8_t buffer[3];
 	size_t divisionX = (size_t)division * 3;
 
 	if (lineSize == 0)

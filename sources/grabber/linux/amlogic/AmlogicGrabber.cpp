@@ -544,14 +544,14 @@ bool AmlogicGrabber::grabFrameAmlogic()
 						memcpy(_lastValidFrame.data(), _amlFrame.data(), _bytesToRead);
 					}
 
-					processSystemFrameBGR(static_cast<uint8_t*>(_amlFrame.data()), linelen);
+					processSystemFrameBGRAML(static_cast<uint8_t*>(_amlFrame.data()), linelen);
 					return true;
 				}
 				else
 				{					
 					if (_lastValidFrame.size() > 0)
 					{					
-						processSystemFrameBGR(_lastValidFrame.data(), linelen);
+						processSystemFrameBGRAML(_lastValidFrame.data(), linelen);
 						return true;
 					}
 	
