@@ -190,6 +190,8 @@ protected:
 
 	void processSystemFrameBGR(uint8_t* source, int lineSize = 0);
 
+	void processSystemFrameBGRAML(uint8_t* source, int lineSize = 0);
+
 	void processSystemFrameBGR16(uint8_t* source, int lineSize = 0);
 
 	void processSystemFrameRGBA(uint8_t* source, int lineSize = 0);
