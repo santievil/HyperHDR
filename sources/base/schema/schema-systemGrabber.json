@@ -278,6 +278,15 @@
 			},
 			"required" : true,
 			"propertyOrder" : 62
+		},
+		"autoToneMapAML" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"required" : true,
+			"title" : "edt_aml_tonemap",
+			"default" : false,
+			"propertyOrder" : 63
 		}		
 	},
 	"additionalProperties" : false
