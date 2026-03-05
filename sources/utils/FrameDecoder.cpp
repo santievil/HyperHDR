@@ -457,7 +457,8 @@ void FrameDecoder::processSystemImageBGRAML(Image<ColorRgb>& image, int targetSi
 			memcpy(&buffer, &sLine, 3);
 			sLine += divisionX + 2;
 			ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[2]);
-			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
+			//*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
+			memcpy(dLine, &_lutBuffer[ind_lutd], 3);
 			dLine += 3;
 		}
 	}
