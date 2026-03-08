@@ -58,6 +58,11 @@ namespace FrameDecoder
 										int startX, int startY,
 										uint8_t* source, int _actualWidth, int _actualHeight,
 										int division, uint8_t* _lutBuffer, int lineSize = 0);
+	
+	void processSystemImageBGRAML(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+										int startX, int startY,
+										uint8_t* source, int _actualWidth, int _actualHeight,
+										int division, uint8_t* _lutBuffer, int lineSize = 0);
 
 	void processSystemImageBGR16(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 										int startX, int startY,

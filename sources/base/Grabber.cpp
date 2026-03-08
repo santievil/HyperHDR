@@ -698,6 +698,23 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 		emit SignalNewCapturedFrame(image);
 }
 
+void Grabber::processSystemFrameBGRAML(uint8_t* source, int lineSize)
+{
+	int targetSizeX, targetSizeY;
+	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
+	Image<ColorRgb> image(targetSizeX, targetSizeY);
+
+	FrameDecoder::processSystemImageBGRAML(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+
+	if (_signalDetectionEnabled)
+	{
+		if (checkSignalDetectionManual(image))
+			emit SignalNewCapturedFrame(image);
+	}
+	else
+		emit SignalNewCapturedFrame(image);
+}
+
 void Grabber::processSystemFrameBGR16(uint8_t* source, int lineSize)
 {
 	int targetSizeX, targetSizeY;

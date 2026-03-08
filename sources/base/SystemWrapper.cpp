@@ -36,6 +36,10 @@
 #include <utils/GlobalSignals.h>
 #include <base/HyperHdrManager.h>
 
+#ifdef ENABLE_AMLOGIC
+    #include <grabber/linux/amlogic/AmlogicGrabber.h>
+#endif
+
 SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)
 	: _grabberName(grabberName)
 	, _log(grabberName)
@@ -154,6 +158,17 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 #ifdef ENABLE_DX
 			// HDR tone mapping
 			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? 1 : 0);
+#endif
+#ifdef ENABLE_AMLOGIC
+			if (obj.contains("autoToneMapAML"))
+			{
+				bool autoToneMapAML = obj["autoToneMapAML"].toBool(false);
+
+				if (auto amlGrabber = dynamic_cast<AmlogicGrabber*>(_grabber))
+				{
+					amlGrabber->setAutoToneMappingAML(autoToneMapAML);
+				}
+			}
 #endif
 
 			// signal
