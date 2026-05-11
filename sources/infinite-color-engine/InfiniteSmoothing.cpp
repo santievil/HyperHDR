@@ -206,7 +206,7 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 		Info(_log, "Updating user config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz)"
 			       ", antiFlickeringFilter: {:s}, smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, updateDelayFrames: {:d}, y_limit: {:f}",
 					SMOOTHING_USER_CONFIG, (EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
-					((_antiFlickeringFilter) ? "enabled": "disabled"), cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->updateDelayFrames, cfg->y_limit
+					((_antiFlickeringFilter) ? "enabled": "disabled"), cfg->smoothingFactor, cfg->stiffness, cfg->damping,  cfg->updateDelayFrames, cfg->y_limit
 			);
 
 		if (_currentConfigId == SMOOTHING_USER_CONFIG)
