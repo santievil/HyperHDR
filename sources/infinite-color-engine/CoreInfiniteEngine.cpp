@@ -59,7 +59,7 @@ bool CoreInfiniteEngine::getAntiFlickeringFilterState()
 
 unsigned CoreInfiniteEngine::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, int ledUpdateDelay_fr, bool pause)
 {
-	return _smoothing->addCustomSmoothingConfig(cfgID, settlingTime_ms, ledUpdateFrequency_hz, int ledUpdateDelay_fr, pause);
+	return _smoothing->addCustomSmoothingConfig(cfgID, settlingTime_ms, ledUpdateFrequency_hz, ledUpdateDelay_fr, pause);
 }
 
 void CoreInfiniteEngine::setCurrentSmoothingConfigParams(unsigned cfgID)
