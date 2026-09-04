@@ -77,6 +77,11 @@ AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurati
 	getDevices();
 }
 
+void AmlogicGrabber::setAutoToneMappingAML(bool enabled)
+{
+    _autoToneMappingAML = enabled;
+    Info(_log, "AmlogicGrabber AutoToneMap = {}", _autoToneMappingAML  ? "ON" : "OFF");
+}
 
 void AmlogicGrabber::resetVariables()
 {
@@ -86,19 +91,84 @@ void AmlogicGrabber::resetVariables()
 	_videoDev = -1;
 	_usingAmlogic = false;
 	_messageShow = false;
+	_currentHDRState = false;
+}
+
+bool AmlogicGrabber::checkKodiHDRStatus()
+{
+	 const QString hdrStatusPath = "/sys/class/amhdmitx/amhdmitx0/hdmi_hdr_status";
+    QFile file(hdrStatusPath);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        Debug(_log, "Cant open hdmi_hdr_status");
+        return false;
+    }
+
+    QString status = file.readAll().trimmed();
+    file.close();
+
+    bool isHDR = !status.isEmpty() && !status.startsWith("SDR", Qt::CaseInsensitive);
+
+    if (isHDR)
+    {
+        Info(_log, "HDR detected: {}", status.toStdString());
+    }
+    else
+    {
+        Debug(_log, "SDR mode active");
+    }
+
+    return isHDR;
 }
 
 QString AmlogicGrabber::GetSharedLut()
 {
-	return "";
+#ifdef __APPLE__
+	QString ret = QString("%1%2").arg(QCoreApplication::applicationDirPath()).arg("/../lut");
+	QFileInfo info(ret);
+	ret = info.absoluteFilePath();
+	return ret;
+#else
+	return QCoreApplication::applicationDirPath();
+#endif
 }
 
-void AmlogicGrabber::loadLutFile(PixelFormat color)
+void AmlogicGrabber::loadLutFile()
 {
+	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/flat_lut_lin_tables.3d");
+	QString fileName2 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
+	QString fileName3 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
+	QList<QString> files({ fileName1, fileName2, fileName3 });
+
+#ifdef __linux__
+	QString fileName4 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
+
+	files.append(fileName4);
+#endif
+
+	if (!_userLutFile.isEmpty())
+	{
+		#ifdef __linux__
+			QString userFileBin = QString("%1/%2").arg(GetSharedLut()).arg(_userLutFile);
+			files.prepend(userFileBin);
+			Info(_log, "Adding user LUT file linux for searching: {:s}", (userFileBin));
+		#endif
+
+		QString userFile = QString("%1/%2").arg(_configurationPath).arg(_userLutFile);
+		files.prepend(userFile);
+		Info(_log, "Adding user LUT file for searching: {:s}", (userFile));
+	}
+	LutLoader::loadLutFile(_log, PixelFormat::RGB24, files);
 }
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
+	if (_hdrToneMappingEnabled != mode)
+	{
+		_hdrToneMappingEnabled = mode;
+		loadLutFile();
+	}
 }
 
 bool AmlogicGrabber::getAspectRatio(int& arW, int& arH)
@@ -344,12 +414,21 @@ void AmlogicGrabber::grabFrame()
 				}
 
 				// Capture framel
-				if (_usingAmlogic) {
+				if (_usingAmlogic)
+				{
 					if (!_messageShow)
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
-						setCapturedHeight();
+						if (_autoToneMappingAML)
+						{
+							_currentHDRState = checkKodiHDRStatus();
+							if (_currentHDRState)                  		
+								setHdrToneMappingEnabled(1);
+							else
+								setHdrToneMappingEnabled(0);
+						}else
+							setHdrToneMappingEnabled(0);
 					}
 					grabFrameAmlogic();
 				}
@@ -358,6 +437,8 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Framebuffer");
 						_messageShow = true;
+						_currentHDRState = false;
+						setHdrToneMappingEnabled(0);
 					}
 					stopNow = grabFrameFramebuffer();
 					if (stopNow)

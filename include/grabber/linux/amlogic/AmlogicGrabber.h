@@ -56,12 +56,14 @@ public slots:
 
 	void newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount) override {};
 
+	void setAutoToneMappingAML(bool enabled);
+
 private:
 	QString GetSharedLut();
 
 	void enumerateDevices(bool silent);
 
-	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
+	void loadLutFile();
 	
 	void getDevices();
 
@@ -82,6 +84,7 @@ private:
 	bool grabFrameFramebuffer();
 	bool getAspectRatio(int& arW, int& arH);
 	bool setCapturedHeight();
+	bool checkKodiHDRStatus();
 
 	MemoryBuffer<uint8_t> _amlFrame;
 	MemoryBuffer<uint8_t> _lastValidFrame;
@@ -89,10 +92,13 @@ private:
 	int _videoDev;
 	bool _usingAmlogic;
 	bool _messageShow;
+	QString	_userLutFile = "";
 		
 private:
 	QString		_configurationPath;
 	QTimer		_timer;
 	QSemaphore	_semaphore;
 	int			_handle;
+	bool _autoToneMappingAML;
+	bool _currentHDRState;
 };
